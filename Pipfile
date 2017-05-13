@@ -1,0 +1,12 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+
+[packages]
+aiohttp = "*"
+ujson = "*"
+asyncpg = "*"
+alembic = "*"
+psycopg2 = "*"
+SQLAlchemy = "*"
+aiohttp_jinja2 = "*"
