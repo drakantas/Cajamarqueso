@@ -1,0 +1,29 @@
+{
+  "name": "Cajamarqueso",
+  "version": "1.0.0",
+  "description": "Proyecto **Sistema de de Pedidos y Ventas** para el curso de ISW2.",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=webpack.config.js && del /f mix-manifest.json",
+    "watch": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=webpack.config.js",
+    "hot": "cross-env NODE_ENV=development node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=webpack.config.js",
+    "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=webpack.config.js && del /f mix-manifest.json",
+    "prod": "npm run production",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drakantas/cajamarqueso.git"
+  },
+  "author": "Vladimir Ibazeta",
+  "bugs": {
+    "url": "https://github.com/drakantas/cajamarqueso/issues"
+  },
+  "homepage": "https://github.com/drakantas/cajamarqueso#readme",
+  "license": "ISC",
+  "devDependencies": {
+    "bootstrap-sass": "^3.3.7",
+    "cross-env": "^5.0.0",
+    "jquery": "^3.2.1",
+    "laravel-mix": "^0.11.4"
+  }
+}

@@ -1,3 +1,4 @@
 *.pyc
 /.idea
 alembic.ini
+/node_modules
