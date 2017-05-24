@@ -20,7 +20,7 @@ class Connection:
         if self.pool is None:
             self.pool = await asyncpg.create_pool(dsn=self.dsn)
 
-    async def query(self, query: str, values: list):
+    async def query(self, query: str, values: list = None):
         async with self.pool.acquire() as connection:
             prepared_stmt = await connection.prepare(self._add_schema(query))
 
@@ -29,7 +29,7 @@ class Connection:
 
             return await prepared_stmt.fetch()
 
-    async def update(self, query: str, values: list):
+    async def update(self, query: str, values: list = None):
         async with self.pool.acquire() as connection:
             async with connection.transaction():
                 prepared_stmt = await connection.prepare(self._add_schema(query))

@@ -8,8 +8,12 @@ Controllers = ('GenerarPedido', 'RegistrarPago', 'ListarPedidos')
 
 class GenerarPedido(Controller):
     async def show(self, request):
-        model = self.app.mvc.models['pedido']
-        print(model)
+        # Modelo de producto
+        producto_model = self.app.mvc.models['producto']
+
+        # Lista de todos los productos
+        productos = await producto_model.get_all()
+
         return Response(text='Bienvenido.')
 
 
