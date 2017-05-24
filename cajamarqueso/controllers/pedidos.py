@@ -1,8 +1,21 @@
 from aiohttp.web import Response
-from ..controller import Controller
+
+from ..abc import Controller
+from ..app import Cajamarqueso
+
+Controllers = ('GenerarPedido', 'RegistrarPago', 'ListarPedidos')
 
 
-class Pedidos(Controller):
-    async def index(self, request):
-        print(request.query)
-        return Response(text='XD')
+class GenerarPedido(Controller):
+    async def show(self, request):
+        model = self.app.mvc.models['pedido']
+        print(model)
+        return Response(text='Bienvenido.')
+
+
+class RegistrarPago(Controller):
+    pass
+
+
+class ListarPedidos(Controller):
+    pass

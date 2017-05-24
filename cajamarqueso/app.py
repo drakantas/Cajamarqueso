@@ -1,67 +1,39 @@
 from os import listdir
 from os.path import isfile
-from sys import modules
-from importlib import import_module
 from aiohttp.web import Application
-from .router import Router
-from .errors import MissingSetupRoutes
 
-CONTROLLERS_PATH = 'cajamarqueso.controllers.{name}'
-ROUTES_PATH = 'cajamarqueso.routes.{name}'
+from .db import Connection
+from .mvc import Mvc
+from .router import Router
+
+try:
+    import ujson as json
+except ImportError:
+    import json
 
 
 class Cajamarqueso(Application):
-
     def __init__(self, paths: dict):
         # Rutas de la aplicación
         self.paths = paths
-        self.paths['routes'] = self.paths['app'].joinpath('routes')
-        self.paths['controllers'] = self.paths['app'].joinpath('controllers')
 
-        # Controladores
-        self.controllers = dict()
+        self.db_config = dict()
 
-        super().__init__(router=Router(self.controllers))
+        with open(self.paths['config'].joinpath('db.json')) as db_cf:
+            self.db_config = json.load(db_cf)
 
-        self.load_controllers()
+        self._router = Router()
 
-        self.load_routes()
+        # Interfaz de la base de datos
+        self.db = Connection(self.db_config['host'], self.db_config['port'], self.db_config['user'],
+                             self.db_config['password'], self.db_config['database'], self.db_config['schema'])
 
-    def load_routes(self):
-        self._load('routes')
+        self.mvc = Mvc(self, self._router, self.db, path=self.paths['app'])
 
-    def load_controllers(self):
-        self._load('controllers')
+        super().__init__(router=self._router)
 
-    def _load(self, name: str):
-        for file in listdir(self.paths[name]):
-            if not isfile(file) and not file.endswith('.py'):
-                continue
+    async def startup(self):
+        # Iniciar conexión con la base de datos
+        await self.db.start()
 
-            getattr(self, '_load_{name}'.format(name=name[:-1]))(file[:-3])
-
-    def _load_route(self, name: str):
-        # Importar el modulo
-        lib = import_module(ROUTES_PATH.format(name=name))
-
-        # Revisar que existe la función setup_routes
-        if not hasattr(lib, 'setup_routes') and type(getattr(lib, 'setup_routes')).__name__ != 'function':
-            del lib
-            del modules[name]
-            raise MissingSetupRoutes('No se encontró la función setup_routes() en {}'.format(name))
-
-        # Pasar el router como único argumento
-        lib.setup_routes(self.router)
-
-    def _load_controller(self, name: str):
-        # Importar controlador
-        _module = import_module(CONTROLLERS_PATH.format(name=name))
-
-        # Clase del controlador
-        _class = getattr(_module, name.capitalize())
-
-        controller = {
-            name: _class(app=self)
-        }
-
-        self.controllers.update(controller)
+        await super().startup()

@@ -2,3 +2,5 @@
 /.idea
 alembic.ini
 /node_modules
+/config/*.json
+!/config/*.json-example
