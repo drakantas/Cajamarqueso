@@ -108,9 +108,7 @@ var Pedido = function () {
 
     _createClass(Pedido, [{
         key: 'initialize',
-        value: function initialize() {
-            alert(this.routes);
-        }
+        value: function initialize() {}
     }]);
 
     return Pedido;

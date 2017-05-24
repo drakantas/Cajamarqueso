@@ -7,7 +7,6 @@ class Pedido
 
     initialize()
     {
-        alert(this.routes);
     }
 }
 

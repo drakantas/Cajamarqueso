@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Título de la página -->
+    <title>{% block title %}{% endblock %} - Cajamarqueso</title>
+
+    <!-- Estilos -->
+    <link href="/static/css/app.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <nav class="sidebar-nav">
+                        <a href="#" class="logo"></a>
+                        <ul class="nav">
+                            <li><a href="#" class="{% block nuevo_pedido %}{% endblock %}">Nuevo Pedido</a></li>
+                            <li><a href="#">Registrar Pago</a></li>
+                            <li><a href="#">Actualizar Pedido</a></li>
+                            <li><a href="#">Ventas</a></li>
+                            <li><a href="#">Productos</a></li>
+                            <li><a href="#">Clientes</a></li>
+                            <li><a href="#">Usuarios</a></li>
+                            <li><a href="#">Salir</a></li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="col-md-9">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Scripts -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
