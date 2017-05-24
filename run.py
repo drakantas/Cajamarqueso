@@ -8,7 +8,8 @@ async def init_app():
     paths = {
         'app': Path('./cajamarqueso'),
         'config': Path('./config'),
-        'static': Path('./static')
+        'static': Path('./static'),
+        'resources': Path('./resources')
     }
     _app = Cajamarqueso(paths)
     return _app

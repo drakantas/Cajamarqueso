@@ -1,6 +1,8 @@
 from os import listdir
 from os.path import isfile
+from jinja2 import FileSystemLoader
 from aiohttp.web import Application
+from aiohttp_jinja2 import setup
 
 from .db import Connection
 from .mvc import Mvc
@@ -24,6 +26,9 @@ class Cajamarqueso(Application):
 
         self._router = Router()
 
+        # Rutas a archivos estáticos
+        self._router.add_static('/static', self.paths['static'])
+
         # Interfaz de la base de datos
         self.db = Connection(self.db_config['host'], self.db_config['port'], self.db_config['user'],
                              self.db_config['password'], self.db_config['database'], self.db_config['schema'])
@@ -31,6 +36,9 @@ class Cajamarqueso(Application):
         self.mvc = Mvc(self, self._router, self.db, path=self.paths['app'])
 
         super().__init__(router=self._router)
+
+        # Inicializar el sistema de templates Jinja2
+        setup(self, loader=FileSystemLoader(str(self.paths['resources'].joinpath('views').resolve())))
 
     async def startup(self):
         # Iniciar conexión con la base de datos
