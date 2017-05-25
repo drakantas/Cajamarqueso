@@ -16,9 +16,12 @@
         </div>
     {% endif %}
     {% if not cliente %}
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#buscar-cliente">
-            Buscar cliente
-        </button>
+        <div class="row">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#buscar-cliente">
+                Buscar cliente
+            </button>
+            <hr>
+        </div>
     {% else %}
         <div class="row">
             <h2>Datos del cliente</h2>
@@ -37,27 +40,37 @@
                 </div>
 
             </div>
+        </div>
+        <div class="row">
             <hr>
         </div>
     {% endif %}
-
     <form class="form-horizontal" method="post" action="/pedido/registrar-nuevo">
         {% if cliente %}
             <input type="hidden" name="id_cliente" value="{{ cliente.id_cliente }}">
         {% endif %}
         <div class="row">
-            <div class="col-md-8 products-list" id="products-list">
+            <div class="col-md-7 products-list" id="products-list">
                 {% for producto in productos %}
                     <div class="col-md-4 product">
-                        {{ producto.nombre_producto }}
+                        <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto">
+                        <label for="selector_item_{{ producto.id_producto }}" class="text-center">
+                            <strong>{{ producto.nombre_producto }} {{ producto.variedad_producto }}</strong><br>
+                            Stock: {{ producto.stock }}
+                        </label>
                     </div>
                 {% endfor %}
-            </div>
-            <div class="col-md-4">
 
             </div>
+            <div class="col-md-5">
+                <button type="button" class="btn btn-default btn-block" id="agregar-producto">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Agregar producto
+                </button>
+            </div>
         </div>
-        <hr>
+        <div class="row">
+            <hr>
+        </div>
         <div class="row">
             <div class="col-sm-6">
                 <div class="form-group">
@@ -89,8 +102,10 @@
                 </div>
             </div>
         </div>
-        <hr>
-        <div class="text-right">
+        <div class="row">
+            <hr>
+        </div>
+        <div class="row text-right">
             <button type="button" class="btn btn-default" id="cancelar-accion">
                 Cancelar
             </button>

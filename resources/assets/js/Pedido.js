@@ -55,7 +55,7 @@ class Pedido
             return;
         }
 
-        results_dom = '<form class="search-results" method="post">';
+        results_dom = `<form class="search-results" method="post" action="${this.routes['nuevo-pedido']}">`;
 
         for (var i = 0; i < results.length; i++) {
             var result = results[i];
