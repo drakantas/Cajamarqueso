@@ -5,7 +5,35 @@
 {% block nuevo_pedido %}active{% endblock %}
 
 {% block content %}
+    {% if not cliente %}
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#buscar-cliente">
+            Buscar cliente
+        </button>
+    {% else %}
+        <div class="row">
+            <h2>Datos del cliente</h2>
+            <hr>
+            <div class="col-md-12">
+                <p><strong>DNI </strong> {{ cliente.id_cliente }}</p>
+                <p><strong>Nombre </strong> {{ cliente.nombre_cliente }}</p>
+                <p><strong>Teléfono </strong> {{ cliente.telefono_cliente }}</p>
+                <p><strong>Email </strong> {{ cliente.email_cliente }}</p>
+
+                <div class="text-right search-again">
+                    <p><em>¿Este no es el cliente que querías?</em></p>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#buscar-cliente">
+                        Buscar otro
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    {% endif %}
     {% for producto in productos %}
         {{ producto.nombre_producto }}
     {% endfor %}
+{% endblock %}
+
+{% block footer %}
+    {% include "clientes/buscar.html" %}
 {% endblock %}

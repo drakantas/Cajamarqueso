@@ -100,21 +100,101 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Pedido = function () {
-    function Pedido(routes) {
+    function Pedido(routes, selectors) {
+        var _this = this;
+
         _classCallCheck(this, Pedido);
 
         this.routes = routes;
+        this.selectors = selectors;
+
+        Object.keys(this.selectors).map(function (key, index) {
+            _this.selectors[key] = $(_this.selectors[key]);
+        });
     }
 
     _createClass(Pedido, [{
         key: 'initialize',
-        value: function initialize() {}
+        value: function initialize() {
+            var _this2 = this;
+
+            this.selectors['buscar-cliente'].find('#search').on('click', function () {
+                _this2.poll();
+            });
+        }
+    }, {
+        key: 'grabData',
+        value: function grabData() {
+            var _ref = [this.selectors['buscar-cliente'].find('#search_type'), this.selectors['buscar-cliente'].find('#search_query')],
+                search_type = _ref[0],
+                search_query = _ref[1];
+
+
+            return [search_type.find(':selected').val(), search_query.val().split(' ').join('-')];
+        }
+    }, {
+        key: 'poll',
+        value: function poll() {
+            var _this3 = this;
+
+            var data = this.grabData();
+            var route = this.routes['buscar-cliente'] + ('/' + data[0] + '/' + data[1]);
+
+            $.ajax(route, {
+                type: 'POST',
+                context: this,
+                dataType: 'json',
+                beforeSend: function beforeSend() {
+                    _this3.selectors['buscar-cliente'].find('#search').button('loading');
+                },
+                success: function success(response) {
+                    _this3.showResults(response);
+                },
+                complete: function complete() {
+                    _this3.selectors['buscar-cliente'].find('#search').button('reset');
+                }
+            });
+        }
+    }, {
+        key: 'showResults',
+        value: function showResults(results) {
+            results = JSON.parse(results);
+            console.log(results);
+            if (results[0] == null) {
+                this.showAlert();
+                return;
+            }
+
+            results_dom = '<form class="search-results" method="post">';
+
+            for (var i = 0; i < results.length; i++) {
+                var result = results[i];
+                var result_dom = '\n                <div class="radio">\n                    <label>\n                        <input type="radio" name="id_cliente" value="' + result['id_cliente'] + '"> ' + result['nombre_cliente'] + '\n                    </label>\n                </div>';
+                results_dom = results_dom + result_dom;
+            }
+
+            results_dom = results_dom + '\n            <div class="text-center">\n                <button type="submit" class="btn btn-primary">\n                    Seleccionar cliente\n                </button>\n            </div>\n        </form>';
+
+            this.selectors['buscar-cliente'].find('.modal-body').append(results_dom);
+        }
+    }, {
+        key: 'showAlert',
+        value: function showAlert() {
+            var alert = '\n            <div class="alert alert-danger" role="alert">\n                No se encontr\xF3 a ning\xFAn cliente.\n            </div>';
+
+            this.selectors['buscar-cliente'].find('.modal-body').append(alert);
+        }
     }]);
 
     return Pedido;
 }();
 
-var pedido = new Pedido('xd');
+var pedido = new Pedido({
+    'buscar-cliente': '/buscar-cliente',
+    'nuevo-pedido': '/pedido/nuevo'
+}, {
+    'buscar-cliente': '#buscar-cliente'
+});
 pedido.initialize();
 
 /***/ }),

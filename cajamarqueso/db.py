@@ -1,5 +1,6 @@
 import asyncio
 import asyncpg
+from typing import Union
 
 DSN = 'postgresql://{user}:{password}@{host}:{port}/{database}'
 
@@ -20,16 +21,23 @@ class Connection:
         if self.pool is None:
             self.pool = await asyncpg.create_pool(dsn=self.dsn)
 
-    async def query(self, query: str, values: list = None):
+    async def query(self, query: str,  values: Union[tuple, list] = None, first: bool = False):
         async with self.pool.acquire() as connection:
             prepared_stmt = await connection.prepare(self._add_schema(query))
 
+            strat = 'fetch'
+
+            if first:
+                strat = 'fetchrow'
+
+            fetch_query = getattr(prepared_stmt, strat)
+
             if values:
-                return await prepared_stmt.fetch(*values)
+                return await fetch_query(*values)
 
-            return await prepared_stmt.fetch()
+            return await fetch_query()
 
-    async def update(self, query: str, values: list = None):
+    async def update(self, query: str, values: Union[tuple, list] = None):
         async with self.pool.acquire() as connection:
             async with connection.transaction():
                 prepared_stmt = await connection.prepare(self._add_schema(query))
