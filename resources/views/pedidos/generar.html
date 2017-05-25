@@ -5,6 +5,16 @@
 {% block nuevo_pedido %}active{% endblock %}
 
 {% block content %}
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+    {% if success %}
+        <div class="alert alert-success" role="alert">
+            {{ success }}
+        </div>
+    {% endif %}
     {% if not cliente %}
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#buscar-cliente">
             Buscar cliente
@@ -27,11 +37,68 @@
                 </div>
 
             </div>
+            <hr>
         </div>
     {% endif %}
-    {% for producto in productos %}
-        {{ producto.nombre_producto }}
-    {% endfor %}
+
+    <form class="form-horizontal" method="post" action="/pedido/registrar-nuevo">
+        {% if cliente %}
+            <input type="hidden" name="id_cliente" value="{{ cliente.id_cliente }}">
+        {% endif %}
+        <div class="row">
+            <div class="col-md-8 products-list" id="products-list">
+                {% for producto in productos %}
+                    <div class="col-md-4 product">
+                        {{ producto.nombre_producto }}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="col-md-4">
+
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-5 control-label">
+                        Fecha actual
+                    </label>
+                    <div class="col-sm-7" style="padding-top:6px;padding-bottom:6px;line-height:1.42857143;">
+                        25/05/2017 03:31:00 PM
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="estado_pedido" class="col-sm-5 control-label">Estado</label>
+                    <div class="col-sm-7">
+                        <select class="form-control" id="estado_pedido" name="estado_pedido">
+                            <option value="1">Pagado</option>
+                            <option value="2" selected>No pagado</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-5 control-label">
+                        Monto
+                    </label>
+                    <div class="col-sm-7" style="padding-top:6px;padding-bottom:6px;line-height:1.42857143;">
+                        S/. 140.50
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="text-right">
+            <button type="button" class="btn btn-default" id="cancelar-accion">
+                Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+                Generar
+            </button>
+        </div>
+    </form>
 {% endblock %}
 
 {% block footer %}

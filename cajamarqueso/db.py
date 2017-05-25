@@ -37,15 +37,23 @@ class Connection:
 
             return await fetch_query()
 
-    async def update(self, query: str, values: Union[tuple, list] = None):
+    async def update(self, queries: Union[tuple, list], values: Union[tuple, list] = None):
         async with self.pool.acquire() as connection:
             async with connection.transaction():
-                prepared_stmt = await connection.prepare(self._add_schema(query))
+                queries = map(lambda query: self._add_schema(query), queries)
 
-                if values:
-                    return await prepared_stmt.execute(*values)
+                try:
+                    for index, query in enumerate(queries):
+                        query = self._add_schema(query)
+                        if values[index]:
+                            await connection.execute(query, *values[index])
+                        else:
+                            await connection.execute(query)
 
-                return await prepared_stmt.execute()
+                    return True
+                except:
+                    pass
+        return False
 
     def _add_schema(self, query):
         return query.replace('t_', self.schema + '.')
