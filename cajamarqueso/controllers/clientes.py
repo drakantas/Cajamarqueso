@@ -36,7 +36,7 @@ class BuscarCliente(Controller):
 
                 return result_dict
 
-            results = map(parse_result, results)
+            results = list(map(parse_result, results))
 
         return json_response(json.dumps(results))
 

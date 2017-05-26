@@ -12,7 +12,7 @@ class Pedido(Model):
 
         for k, v in data['productos'].items():
             detalle_query = 'INSERT INTO t_detalle_pedido (pedido_id, producto_id, cantidad) VALUES ($1, $2, $3)'
-            detalle_values = (pedido.id, k, v)
+            detalle_values = (pedido['id_pedido'], k, v)
 
             detalles_queries.append(detalle_query)
             detalles_values.append(detalle_values)

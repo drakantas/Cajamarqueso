@@ -15,6 +15,12 @@ class Pedido
         this.selectors['buscar-cliente'].find('#search').on('click', () => {
             this.poll();
         });
+
+        this.addClickEventToProducts();
+
+        this.addNewProductEvent();
+
+        this.addTotalPriceEvent();
     }
 
     grabData()
@@ -49,13 +55,14 @@ class Pedido
     showResults(results)
     {
         results = JSON.parse(results);
-        console.log(results);
+
         if (results[0] == null) {
             this.showAlert();
             return;
         }
 
-        results_dom = `<form class="search-results" method="post" action="${this.routes['nuevo-pedido']}">`;
+        results_dom = `<hr><div class="col-sm-12">
+            <form class="search-results" method="post" action="${this.routes['nuevo-pedido']}">`;
 
         for (var i = 0; i < results.length; i++) {
             var result = results[i];
@@ -69,24 +76,139 @@ class Pedido
         }
 
         results_dom = `${results_dom}
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary">
-                    Seleccionar cliente
-                </button>
-            </div>
-        </form>`;
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">
+                        Seleccionar cliente
+                    </button>
+                </div>
+            </form>
+        </div>`;
 
-        this.selectors['buscar-cliente'].find('.modal-body').append(results_dom);
+        this.selectors['buscar-cliente'].find('.modal-body .search_results').html(results_dom);
     }
 
     showAlert()
     {
-        var alert = `
-            <div class="alert alert-danger" role="alert">
-                No se encontró a ningún cliente.
+        var alert = `<hr>
+            <div class="col-sm-12">
+                <div class="alert alert-danger" role="alert">
+                    No se encontró a ningún cliente.
+                </div>
             </div>`;
 
-        this.selectors['buscar-cliente'].find('.modal-body').append(alert);
+        this.selectors['buscar-cliente'].find('.modal-body .search_results').html(alert);
+    }
+
+    selectedProduct()
+    {
+        var selected = this.selectors['lista-productos'].find('.product').find('label.selected').get(0);
+
+        if (typeof selected === 'undefined') {
+            return null;
+        }
+
+        return $(this.selectors['lista-productos'].find('.product').find('label.selected').get(0));
+    }
+
+    addClickEventToProducts()
+    {
+        var productos = this.selectors['lista-productos'].find('.product').find('label');
+
+        productos.on('click', (event) => {
+            var selected = this.selectedProduct();
+            var producto = $(event.currentTarget);
+
+            if (selected === producto) {
+                return;
+            }
+
+            if (selected !== null) {
+                selected.removeClass('selected');
+            }
+
+            producto.addClass('selected');
+        });
+    }
+
+    addNewProductEvent()
+    {
+        this.selectors['agregar-producto'].on('click', () => {
+            var producto = this.selectedProduct();
+
+            if (producto === null) {
+                return;
+            }
+
+            var producto_id = producto.prev().attr('value');
+            var producto_nombre = producto.find('.product_name').html();
+            var producto_stock = producto.find('.product_stock').html();
+
+            var producto_carrito = this.selectors['carrito'].find('.product label:contains("'+producto_nombre+'")');
+
+            if (typeof producto_carrito.html() === 'undefined') {
+                this.selectors['carrito'].append(this.buildProductDom(producto_id, producto_nombre, producto_stock));
+                return;
+            }
+
+            producto_carrito.next().next().focus();
+        });
+    }
+
+    buildProductDom(id, name, stock)
+    {
+        return `
+            <div class="panel panel-default product">
+                <div class="panel-body">
+                    <div class="col-md-3 text-center">
+                        <button type="button" class="btn btn-danger">
+                            <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                    <div class="col-md-9">
+                        <label for="producto_${id}" class="selected_product_name">${name}</label><br>
+                        <input type="text" class="form-control" id="producto_${id}" name="producto_${id}" placeholder="Stock: ${stock}">
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    updateTotalAmount()
+    {
+        var productos = this.selectors['carrito'].find('.product');
+
+        if (productos.length === 0) {
+            return;
+        }
+
+        var monto_total = 0.0;
+
+        for (var i = 0; i < productos.length; i++) {
+            producto = $(productos[i]);
+
+            var selector_producto = this.selectors['lista-productos'].find('.product:contains("'+producto.find('label').html()+'")');
+            var precio_producto = parseFloat(selector_producto.find('.product_price').html());
+            var cantidad_producto = producto.find('input[type="text"]').val();
+
+
+            if (cantidad_producto === '') {
+                cantidad_producto = 0;
+            } else {
+                cantidad_producto = parseInt(cantidad_producto);
+            }
+
+            monto_total += precio_producto * cantidad_producto;
+        }
+
+        this.selectors['monto-total'].html('' + monto_total.toFixed(2));
+    }
+
+    addTotalPriceEvent()
+    {
+        var selector = this.selectors['carrito'].find('.product input[type="text"]');
+
+        $(document).on('change paste', selector, () => {
+            this.updateTotalAmount();
+        });
     }
 }
 
@@ -95,6 +217,10 @@ let pedido = new Pedido({
     'buscar-cliente': '/buscar-cliente',
     'nuevo-pedido': '/pedido/nuevo'
 }, {
-    'buscar-cliente': '#buscar-cliente'
+    'buscar-cliente': '#buscar-cliente',
+    'lista-productos': '#products-list',
+    'agregar-producto': '#agregar-producto',
+    'carrito': '.selected-products',
+    'monto-total': '.monto_total'
 });
 pedido.initialize();

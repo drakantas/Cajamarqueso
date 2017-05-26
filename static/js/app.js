@@ -121,6 +121,12 @@ var Pedido = function () {
             this.selectors['buscar-cliente'].find('#search').on('click', function () {
                 _this2.poll();
             });
+
+            this.addClickEventToProducts();
+
+            this.addNewProductEvent();
+
+            this.addTotalPriceEvent();
         }
     }, {
         key: 'grabData',
@@ -159,13 +165,13 @@ var Pedido = function () {
         key: 'showResults',
         value: function showResults(results) {
             results = JSON.parse(results);
-            console.log(results);
+
             if (results[0] == null) {
                 this.showAlert();
                 return;
             }
 
-            results_dom = '<form class="search-results" method="post" action="' + this.routes['nuevo-pedido'] + '">';
+            results_dom = '<hr><div class="col-sm-12">\n            <form class="search-results" method="post" action="' + this.routes['nuevo-pedido'] + '">';
 
             for (var i = 0; i < results.length; i++) {
                 var result = results[i];
@@ -173,16 +179,120 @@ var Pedido = function () {
                 results_dom = results_dom + result_dom;
             }
 
-            results_dom = results_dom + '\n            <div class="text-center">\n                <button type="submit" class="btn btn-primary">\n                    Seleccionar cliente\n                </button>\n            </div>\n        </form>';
+            results_dom = results_dom + '\n                <div class="text-center">\n                    <button type="submit" class="btn btn-primary">\n                        Seleccionar cliente\n                    </button>\n                </div>\n            </form>\n        </div>';
 
-            this.selectors['buscar-cliente'].find('.modal-body').append(results_dom);
+            this.selectors['buscar-cliente'].find('.modal-body .search_results').html(results_dom);
         }
     }, {
         key: 'showAlert',
         value: function showAlert() {
-            var alert = '\n            <div class="alert alert-danger" role="alert">\n                No se encontr\xF3 a ning\xFAn cliente.\n            </div>';
+            var alert = '<hr>\n            <div class="col-sm-12">\n                <div class="alert alert-danger" role="alert">\n                    No se encontr\xF3 a ning\xFAn cliente.\n                </div>\n            </div>';
 
-            this.selectors['buscar-cliente'].find('.modal-body').append(alert);
+            this.selectors['buscar-cliente'].find('.modal-body .search_results').html(alert);
+        }
+    }, {
+        key: 'selectedProduct',
+        value: function selectedProduct() {
+            var selected = this.selectors['lista-productos'].find('.product').find('label.selected').get(0);
+
+            if (typeof selected === 'undefined') {
+                return null;
+            }
+
+            return $(this.selectors['lista-productos'].find('.product').find('label.selected').get(0));
+        }
+    }, {
+        key: 'addClickEventToProducts',
+        value: function addClickEventToProducts() {
+            var _this4 = this;
+
+            var productos = this.selectors['lista-productos'].find('.product').find('label');
+
+            productos.on('click', function (event) {
+                var selected = _this4.selectedProduct();
+                var producto = $(event.currentTarget);
+
+                if (selected === producto) {
+                    return;
+                }
+
+                if (selected !== null) {
+                    selected.removeClass('selected');
+                }
+
+                producto.addClass('selected');
+            });
+        }
+    }, {
+        key: 'addNewProductEvent',
+        value: function addNewProductEvent() {
+            var _this5 = this;
+
+            this.selectors['agregar-producto'].on('click', function () {
+                var producto = _this5.selectedProduct();
+
+                if (producto === null) {
+                    return;
+                }
+
+                var producto_id = producto.prev().attr('value');
+                var producto_nombre = producto.find('.product_name').html();
+                var producto_stock = producto.find('.product_stock').html();
+
+                var producto_carrito = _this5.selectors['carrito'].find('.product label:contains("' + producto_nombre + '")');
+
+                if (typeof producto_carrito.html() === 'undefined') {
+                    _this5.selectors['carrito'].append(_this5.buildProductDom(producto_id, producto_nombre, producto_stock));
+                    return;
+                }
+
+                producto_carrito.next().next().focus();
+            });
+        }
+    }, {
+        key: 'buildProductDom',
+        value: function buildProductDom(id, name, stock) {
+            return '\n            <div class="panel panel-default product">\n                <div class="panel-body">\n                    <div class="col-md-3 text-center">\n                        <button type="button" class="btn btn-danger">\n                            <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>\n                        </button>\n                    </div>\n                    <div class="col-md-9">\n                        <label for="producto_' + id + '" class="selected_product_name">' + name + '</label><br>\n                        <input type="text" class="form-control" id="producto_' + id + '" name="producto_' + id + '" placeholder="Stock: ' + stock + '">\n                    </div>\n                </div>\n            </div>';
+        }
+    }, {
+        key: 'updateTotalAmount',
+        value: function updateTotalAmount() {
+            var productos = this.selectors['carrito'].find('.product');
+
+            if (productos.length === 0) {
+                return;
+            }
+
+            var monto_total = 0.0;
+
+            for (var i = 0; i < productos.length; i++) {
+                producto = $(productos[i]);
+
+                var selector_producto = this.selectors['lista-productos'].find('.product:contains("' + producto.find('label').html() + '")');
+                var precio_producto = parseFloat(selector_producto.find('.product_price').html());
+                var cantidad_producto = producto.find('input[type="text"]').val();
+
+                if (cantidad_producto === '') {
+                    cantidad_producto = 0;
+                } else {
+                    cantidad_producto = parseInt(cantidad_producto);
+                }
+
+                monto_total += precio_producto * cantidad_producto;
+            }
+
+            this.selectors['monto-total'].html('' + monto_total.toFixed(2));
+        }
+    }, {
+        key: 'addTotalPriceEvent',
+        value: function addTotalPriceEvent() {
+            var _this6 = this;
+
+            var selector = this.selectors['carrito'].find('.product input[type="text"]');
+
+            $(document).on('change paste', selector, function () {
+                _this6.updateTotalAmount();
+            });
         }
     }]);
 
@@ -193,7 +303,11 @@ var pedido = new Pedido({
     'buscar-cliente': '/buscar-cliente',
     'nuevo-pedido': '/pedido/nuevo'
 }, {
-    'buscar-cliente': '#buscar-cliente'
+    'buscar-cliente': '#buscar-cliente',
+    'lista-productos': '#products-list',
+    'agregar-producto': '#agregar-producto',
+    'carrito': '.selected-products',
+    'monto-total': '.monto_total'
 });
 pedido.initialize();
 

@@ -53,11 +53,22 @@ $text-color: #636b6f;
 }
 
 .products-list {
-    background-color: rgba(0,0,0,0.075);
+    background-color: rgba(0,0,0,0.035);
+    border: 1px solid #DEDEDE;
+    border-radius: 4px;
+    padding-top: 15px;
+    padding-bottom: 15px;
 }
 
 .products-list .product {
     position: relative;
+}
+
+.products-list .product img {
+    width: 100%;
+    height: auto;
+    border-radius: 3px;
+    margin-bottom: 5px;
 }
 
 .products-list .product > input[type="radio"] {
@@ -78,11 +89,39 @@ $text-color: #636b6f;
     font-size: 12px;
     font-weight: 400;
     border-radius: 4px;
-    border-width: 3px;
+    border-width: 2px;
     border-style: solid;
     border-color: transparent;
 }
 
-.products-list .product > label:active {
+.products-list .product > label.selected {
     border-color: #337AB7;
+    background-color: rgba(51, 122, 183, 0.15);
+    box-shadow: 0 2px 4px rgba(51, 122, 183, 0.40);
+}
+
+.selected-products {
+
+}
+
+.selected-products .product {
+    margin-bottom: 5px;
+}
+
+.selected-products .product .col-md-3,
+.selected-products .product .col-md-9 {
+    min-height: 59px;
+    max-height: 59px;
+    vertical-align: middle;
+}
+
+.selected-products .product .col-md-3 {
+    padding-top: 12px;
+    padding-bottom: 13px;
+}
+
+.selected-products .product .col-md-3 > button {
+    border-radius: 50%;
+    padding-left: 9px;
+    padding-right: 9px;
 }

@@ -20,15 +20,18 @@ class GenerarPedido(Controller):
     @template('pedidos/generar.html')
     async def show(self, request):
         return {
-            'productos': await self.get_productos()
+            'productos': await self.get_productos(),
+            'ahora': await date().formatted_now()
         }
 
     @template('pedidos/generar.html')
     async def show_with(self, request):
         data = await request.post()
+
         return {
-            'cliente': await self.get_cliente(data['id_cliente']),
-            'productos': await self.get_productos()
+            'cliente': await self.get_cliente(data['id_cliente']) if 'id_cliente' in data else None,
+            'productos': await self.get_productos(),
+            'ahora': await date().formatted_now()
         }
 
     @template('pedidos/generar.html')
@@ -50,7 +53,8 @@ class GenerarPedido(Controller):
         return {
             **alert,
             'cliente': await self.get_cliente(data['id_cliente']) if 'id_cliente' in data else None,
-            'productos': await self.get_productos()
+            'productos': await self.get_productos(),
+            'ahora': await date().formatted_now()
         }
 
     async def validate(self, data: dict) -> Union[dict, str]:
@@ -66,13 +70,11 @@ class GenerarPedido(Controller):
         if not cliente:
             return 'El cliente no existe en nuestra base de datos. Por favor, inténtelo de nuevo con otro cliente.'
 
-        productos = {k[9:]: v for k, v in data.items() if re.fullmatch(PRODUCT_KEY_PATTERN, k)}
+        productos = {int(k[9:]): v for k, v in data.items() if re.fullmatch(PRODUCT_KEY_PATTERN, k)}
 
         for k, v in productos.items():
-            k = int(k)
-
             try:
-                v = int(v)
+                productos[k] = int(v)
             except ValueError:
                 return 'Las cantidades de productos deben de ser números enteros.'
 
@@ -81,11 +83,11 @@ class GenerarPedido(Controller):
             if not producto:
                 return 'Uno de los productos ingresados no existe en nuestra base de datos.'
 
-            if producto.stock < v:
+            if producto['stock'] < productos[k]:
                 alerta = 'No se tienen suficientes productos en stock para <strong>{nombre}</strong>, solo tenemos ' \
                          '<strong>{stock}</strong> disponibles, y usted trató de registrar {cant}. Por favor, ' \
                          'inténtelo de nuevo.'
-                return alerta.format(nombre=producto.nombre_producto, stock=producto.stock, cant=v)
+                return alerta.format(nombre=producto['nombre_producto'], stock=producto['stock'], cant=v)
 
         try:
             estado_pedido = int(data['estado_pedido'])

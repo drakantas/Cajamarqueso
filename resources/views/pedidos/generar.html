@@ -6,13 +6,17 @@
 
 {% block content %}
     {% if error %}
-        <div class="alert alert-danger" role="alert">
-            {{ error }}
+        <div class="row">
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
         </div>
     {% endif %}
     {% if success %}
-        <div class="alert alert-success" role="alert">
-            {{ success }}
+        <div class="row">
+            <div class="alert alert-success" role="alert">
+                {{ success }}
+            </div>
         </div>
     {% endif %}
     {% if not cliente %}
@@ -53,16 +57,20 @@
             <div class="col-md-7 products-list" id="products-list">
                 {% for producto in productos %}
                     <div class="col-md-4 product">
-                        <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto">
+                        <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto" value="{{ producto.id_producto }}">
                         <label for="selector_item_{{ producto.id_producto }}" class="text-center">
-                            <strong>{{ producto.nombre_producto }} {{ producto.variedad_producto }}</strong><br>
-                            Stock: {{ producto.stock }}
+                            <img src="data:image/png;base64,{{ producto.imagen_producto.decode('utf-8') }}">
+                            <strong class="product_name">{{ producto.nombre_producto }} {{ producto.variedad_producto }}</strong><br>
+                            Stock: <span class="product_stock">{{ producto.stock }}</span><br>
+                            S/. <span class="product_price">{{ producto.precio }}</span>
                         </label>
                     </div>
                 {% endfor %}
 
             </div>
             <div class="col-md-5">
+                <div class="selected-products">
+                </div>
                 <button type="button" class="btn btn-default btn-block" id="agregar-producto">
                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Agregar producto
                 </button>
@@ -78,7 +86,7 @@
                         Fecha actual
                     </label>
                     <div class="col-sm-7" style="padding-top:6px;padding-bottom:6px;line-height:1.42857143;">
-                        25/05/2017 03:31:00 PM
+                        {{ ahora }}
                     </div>
                 </div>
                 <div class="form-group">
@@ -97,7 +105,7 @@
                         Monto
                     </label>
                     <div class="col-sm-7" style="padding-top:6px;padding-bottom:6px;line-height:1.42857143;">
-                        S/. 140.50
+                        S/. <span class="monto_total">0</span>
                     </div>
                 </div>
             </div>
@@ -106,9 +114,9 @@
             <hr>
         </div>
         <div class="row text-right">
-            <button type="button" class="btn btn-default" id="cancelar-accion">
+            <a href="/" class="btn btn-default" id="cancelar-accion">
                 Cancelar
-            </button>
+            </a>
             <button type="submit" class="btn btn-primary">
                 Generar
             </button>

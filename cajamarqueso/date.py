@@ -9,7 +9,7 @@ def date():
 class Date:
     def __init__(self):
         self.timezone = timezone('America/Lima')
-        self.format = ('%Y-%m-%d %H:%M:%S', '%d-%m-%Y %I:%M:%S %p')
+        self.format = ('%Y/%m/%d %H:%M:%S', '%d/%m/%Y %I:%M:%S %p')
 
     async def now(self) -> datetime:
         dt_now = datetime.utcnow().astimezone(self.timezone).now()
@@ -17,3 +17,6 @@ class Date:
 
     async def parse(self, date: datetime) -> str:
         return date.strftime(self.format[1])
+
+    async def formatted_now(self):
+        return await self.parse(await self.now())
