@@ -5,6 +5,7 @@
 {% block nuevo_pedido %}active{% endblock %}
 
 {% block content %}
+<div class="{% if not cliente%}no-client{% endif %}">
     {% if error %}
         <div class="row">
             <div class="alert alert-danger" role="alert">
@@ -20,11 +21,10 @@
         </div>
     {% endif %}
     {% if not cliente %}
-        <div class="row">
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#buscar-cliente">
+        <div class="row btn-no-client-wrapper">
+            <button type="button" class="btn btn-primary btn-no-client" data-toggle="modal" data-target="#buscar-cliente">
                 Buscar cliente
             </button>
-            <hr>
         </div>
     {% else %}
         <div class="row">
@@ -83,18 +83,32 @@
             <div class="col-sm-6">
                 <div class="form-group">
                     <label class="col-sm-5 control-label">
-                        Fecha actual
+                        Fecha
+                        {% if id_pedido is defined %}
+                            de registro
+                        {% else %}
+                            actual
+                        {% endif %}
                     </label>
                     <div class="col-sm-7" style="padding-top:6px;padding-bottom:6px;line-height:1.42857143;">
-                        {{ ahora }}
+                        {% if id_pedido is defined %}
+                            {{ fecha_realizado }}
+                        {% else %}
+                            {{ ahora }}
+                        {% endif %}
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="estado_pedido" class="col-sm-5 control-label">Estado</label>
                     <div class="col-sm-7">
                         <select class="form-control" id="estado_pedido" name="estado_pedido">
-                            <option value="1">Pagado</option>
-                            <option value="2" selected>No pagado</option>
+                            {% if id_pedido is defined %}
+                                <option value="1" {% if estado == 1 %}selected{% endif %}>Pagado</option>
+                                <option value="2" {% if estado == 2 %}selected{% endif %}>No pagado</option>
+                            {% else %}
+                                <option value="1">Pagado</option>
+                                <option value="2" selected>No pagado</option>
+                            {% endif %}
                         </select>
                     </div>
                 </div>
@@ -122,6 +136,7 @@
             </button>
         </div>
     </form>
+</div>
 {% endblock %}
 
 {% block footer %}

@@ -8,7 +8,7 @@ from aiohttp_jinja2 import template
 from ..abc import Controller
 from ..date import date
 
-Controllers = ('GenerarPedido', 'RegistrarPago', 'BuscarPedido')
+Controllers = ('GenerarPedido', 'RegistrarPago', 'BuscarPedido', 'ActualizarPedido')
 
 PRODUCT_KEY_PATTERN = r'producto_[1-9][0-9]*'
 
@@ -207,6 +207,20 @@ class RegistrarPago(Controller):
         pedido_model = self.app.mvc.models['pedido']
 
         return await pedido_model.update(data)
+
+
+class ActualizarPedido(Controller):
+    @template('pedidos/generar.html')
+    async def show(self, request):
+        id_pedido = int(request.match_info['pedido_id'])
+
+        pedido = await self.app.mvc.models['pedido'].get(id_pedido)
+
+        if not pedido:
+            raise HTTPNotFound
+
+        return {**pedido,
+                'productos': await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_productos')()}
 
 
 

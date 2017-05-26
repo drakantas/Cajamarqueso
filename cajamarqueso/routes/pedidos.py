@@ -12,3 +12,6 @@ def setup_routes(router: Router):
           .add_route('GET', getattr(router.controllers['pedidos.RegistrarPago'], 'show'))
     router.add_resource(r'/pedido/registrar-pago/{pedido_id:[1-9]\d*}')\
           .add_route('POST', getattr(router.controllers['pedidos.RegistrarPago'], 'post'))
+
+    router.add_resource(r'/pedido/actualizar/{pedido_id:[1-9]\d*}')\
+          .add_route('GET', getattr(router.controllers['pedidos.ActualizarPedido'], 'show'))
