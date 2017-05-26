@@ -358,14 +358,14 @@ var Pedido = function () {
             this.selectors['registrar-pago'].on('click', function () {
                 var pedido_id = _this10.validateSelectedOrder();
                 if (pedido_id !== null) {
-                    window.location.replace(_this10.routes['registrar-pago'] + ('/' + pedido_id + '/'));
+                    window.location.replace(_this10.routes['registrar-pago'] + ('/' + pedido_id));
                 }
             });
 
             this.selectors['actualizar-pedido'].on('click', function () {
                 var pedido_id = _this10.validateSelectedOrder();
                 if (pedido_id !== null) {
-                    window.location.replace(_this10.routes['actualizar-pedido'] + ('/' + pedido_id + '/'));
+                    window.location.replace(_this10.routes['actualizar-pedido'] + ('/' + pedido_id));
                 }
             });
         }

@@ -269,14 +269,14 @@ class Pedido
         this.selectors['registrar-pago'].on('click', () => {
             var pedido_id = this.validateSelectedOrder();
             if (pedido_id !== null) {
-                window.location.replace(this.routes['registrar-pago'] + `/${pedido_id}/`);
+                window.location.replace(this.routes['registrar-pago'] + `/${pedido_id}`);
             }
         });
 
         this.selectors['actualizar-pedido'].on('click', () => {
             var pedido_id = this.validateSelectedOrder();
             if (pedido_id !== null) {
-                window.location.replace(this.routes['actualizar-pedido'] + `/${pedido_id}/`);
+                window.location.replace(this.routes['actualizar-pedido'] + `/${pedido_id}`);
             }
         });
     }

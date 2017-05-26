@@ -1,6 +1,8 @@
 import re
 from enum import Enum
 from typing import Union
+from decimal import Decimal, InvalidOperation
+from aiohttp.web import HTTPNotFound
 from aiohttp_jinja2 import template
 
 from ..abc import Controller
@@ -136,7 +138,76 @@ class GenerarPedido(Controller):
 
 
 class RegistrarPago(Controller):
-    pass
+    @template('pedidos/registrar_pago.html')
+    async def show(self, request):
+        id_pedido = int(request.match_info['pedido_id'])
+
+        pedido = await self.app.mvc.models['pedido'].get(id_pedido)
+        pago = await self.app.mvc.models['pedido'].get_payment(id_pedido)
+
+        if (not pedido) or pago:
+            raise HTTPNotFound
+
+        return {**pedido, 'ahora_mismo': await date().formatted_now()}
+
+    @template('pedidos/registrar_pago.html')
+    async def post(self, request):
+        data = await request.post()
+
+        validated_data = await self.validate({
+            'id_pedido': data['id_pedido'],
+            'importe_total': data['importe_total']
+        })
+
+        if isinstance(validated_data, str):
+            alert = {'error': validated_data}
+        else:
+            status = await self.update(validated_data)
+
+            if status is True:
+                alert = {'success': 'Se ha registrado el pago exitosamente.'}
+            else:
+                alert = {'error': 'No se pudo registrar el pago.'}
+
+        id_pedido = int(request.match_info['pedido_id'])
+        pedido = await self.app.mvc.models['pedido'].get(id_pedido)
+
+        if not pedido:
+            raise HTTPNotFound
+
+        return {**pedido, **alert, 'ahora_mismo': await date().formatted_now()}
+
+    async def validate(self, data: dict):
+        try:
+            id_pedido = int(data['id_pedido'])
+        except ValueError:
+            return 'La Id de pedido deberá de ser un número entero.'
+        except KeyError:
+            return 'Se debe de brindar una Id de pedido para registrar el pago.'
+
+        pago = await self.app.mvc.models['pedido'].get_payment(id_pedido)
+
+        if pago:
+            return 'Ya existe un pago registrado para este pedido.'
+
+        try:
+            importe_total = Decimal(data['importe_total'])
+        except InvalidOperation:
+            return 'El importe total deberá de ser un número entero o decimal.'
+        except KeyError:
+            return 'El importe total debe de ser brindado.'
+
+        return {
+            'id_pedido': id_pedido,
+            'importe_total': importe_total,
+            'ahora': await date().now()
+        }
+
+    async def update(self, data: dict):
+        pedido_model = self.app.mvc.models['pedido']
+
+        return await pedido_model.update(data)
+
 
 
 class BuscarPedido(Controller):

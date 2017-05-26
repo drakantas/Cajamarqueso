@@ -1,0 +1,137 @@
+{% extends "layouts/app.html" %}
+
+{% block title %}Registrar pago{% endblock %}
+
+{% block content %}
+    {% if error %}
+        <div class="row">
+            <div class="alert alert-error" role="alert">
+                {{ error }}
+            </div>
+        </div>
+    {% endif %}
+    {% if success %}
+        <div class="row">
+            <div class="alert alert-success" role="alert">
+                {{ success }}
+            </div>
+        </div>
+    {% endif %}
+    <div class="row">
+        <h2>Registrar pago</h2>
+        <hr>
+        <div class="col-md-6">
+            <h3>Cliente</h3>
+            <hr>
+            <p>
+                <strong>Tipo de cliente</strong>
+                {% if cliente.tipo_cliente_id == 1 %}
+                    Persona
+                {% elif cliente.tipo_cliente_id == 2 %}
+                    Empresa
+                {% endif %}
+            </p>
+            <p>
+                <strong>
+                {% if cliente.tipo_cliente_id == 1 %}
+                    DNI
+                {% elif cliente.tipo_cliente_id == 2 %}
+                    RUC
+                {% endif %}
+                </strong>
+                {{ cliente.id_cliente }}
+            </p>
+            <p>
+                <strong>Nombre(s)</strong>
+                {{ cliente.nombre_cliente }}
+            </p>
+            <p>
+                <strong>Teléfono</strong>
+                {{ cliente.telefono_cliente }}
+            </p>
+            <p>
+                <strong>Email</strong>
+                {{ cliente.email_cliente }}
+            </p>
+        </div>
+        <div class="col-md-6">
+            <h3>Pedido</h3>
+            <hr>
+            <p>
+                <strong>Fecha realizado</strong>
+                {{ fecha_realizado }}
+            </p>
+            <p>
+                <strong>Estado</strong>
+                {% if estado == 1 %}
+                    Pagado
+                {% elif estado == 2 %}
+                    No pagado
+                {% endif %}
+            </p>
+            <hr>
+            <h4>Productos</h4>
+            {% for detalle in detalles %}
+            <p>
+                <strong>{{ detalle.nombre_producto }} {{ detalle.variedad_producto }}</strong><br>
+                <em>
+                    {{ detalle.cantidad }}
+                    {% if detalle.cantidad == 1 %}
+                        unidad
+                    {% elif detalle.cantidad > 1 %}
+                        unidades
+                    {% endif %}
+                </em> (S/. {{ detalle.precio }} c/u)
+            </p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="row">
+        <hr>
+        <form class="form-horizontal" method="post">
+            <input type="hidden" name="importe_total" value="
+            {% if pago.importe_pagado %}
+                {{ pago.importe_pagado }}
+            {% else %}
+                {{ importe_total }}
+            {% endif %}">
+            <input type="hidden" name="id_pedido" value="{{ id_pedido }}">
+            <div class="form-group">
+                <label class="col-sm-5 control-label">Ahora mismo</label>
+                <div class="col-sm-7">
+                    {{ ahora_mismo }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-5 control-label">Importe total</label>
+                <div class="col-sm-7">
+                    S/.
+                    {% if pago.importe_pagado %}
+                        {{ pago.importe_pagado }}
+                    {% else %}
+                        {{ importe_total }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-5 control-label">Código de comprobante</label>
+                <div class="col-sm-7">
+                    #
+                    {% if not pago.id_pago %}
+                        Se generará una vez registres el pago.
+                    {% else %}
+                        {{ pago.id_pago }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-5 col-sm-7">
+                    <button type="submit" class="btn btn-primary">
+                        Registrar
+                    </button>
+                </div>
+            </div>
+        </form>
+
+    </div>
+{% endblock %}

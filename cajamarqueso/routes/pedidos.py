@@ -7,3 +7,8 @@ def setup_routes(router: Router):
     router.add_route('POST', '/pedido/registrar-nuevo', 'pedidos.GenerarPedido.register')
 
     router.add_route('POST', '/pedidos', 'pedidos.BuscarPedido.show_results')
+
+    router.add_resource(r'/pedido/registrar-pago/{pedido_id:[1-9]\d*}')\
+          .add_route('GET', getattr(router.controllers['pedidos.RegistrarPago'], 'show'))
+    router.add_resource(r'/pedido/registrar-pago/{pedido_id:[1-9]\d*}')\
+          .add_route('POST', getattr(router.controllers['pedidos.RegistrarPago'], 'post'))

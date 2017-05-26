@@ -1,5 +1,8 @@
+from typing import Union
+
 from ..abc import Model
 from ..date import date
+from ..controllers.pedidos import EstadoPedido
 
 
 class Pedido(Model):
@@ -28,8 +31,51 @@ class Pedido(Model):
 
         return results
 
+    async def get(self, id_pedido: int) -> Union[dict, None]:
+        pedido = await self.db.query('SELECT * FROM t_pedido WHERE id_pedido = $1', (id_pedido,), first=True)
+
+        if not pedido:
+            return None
+
+        cliente = await self.db.query('SELECT * FROM t_cliente WHERE id_cliente = $1', (pedido['cliente_id'],),
+                                      first=True)
+
+        pedido = {k: v for k, v in pedido.items()}
+
+        pago = await self.get_payment(pedido['id_pedido'])
+
+        pedido['fecha_realizado'] = await date().parse(pedido['fecha_realizado'])
+
+        pedido.update({
+            'cliente': {k: v for k, v in cliente.items()},
+            'detalles': [{k: v for k, v in detalle.items()} for detalle in (await self.get_detalles(pedido['id_pedido']))],
+            'pago': {k: v for k, v in pago.items()} if pago else {}
+        })
+
+        importe_total = 0
+
+        for detalle in pedido['detalles']:
+            importe_total += detalle['precio'] * detalle['cantidad']
+
+        pedido['importe_total'] = importe_total
+
+        return pedido
+
+    async def get_payment(self, id_pedido: int):
+        return await self.db.query('SELECT * FROM t_pago WHERE pedido_id = $1', (id_pedido,), first=True)
+
+    async def update(self, data: dict) -> bool:
+        query, values = ('UPDATE t_pedido SET estado = $1 WHERE id_pedido = $2',
+                         'INSERT INTO t_pago (pedido_id, importe_pagado, fecha_realizado) '
+                         'VALUES ($1, $2, $3)'), ((EstadoPedido.PAGADO.value, data['id_pedido']),
+                                                  (data['id_pedido'], data['importe_total'], data['ahora']))
+
+        return await self.db.update(query, values)
+
     async def get_detalles(self, id_pedido: int) -> list:
-        detalles = await self.db.query('SELECT * FROM t_detalle_pedido WHERE pedido_id = $1', (id_pedido,))
+        detalles = await self.db.query('SELECT * FROM t_detalle_pedido INNER JOIN t_producto ON '
+                                       'detalle_pedido.producto_id = producto.id_producto WHERE '
+                                       'detalle_pedido.pedido_id = $1', (id_pedido,))
         return detalles
 
     async def create(self, data: dict) -> bool:
