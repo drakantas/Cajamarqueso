@@ -274,7 +274,11 @@ var Pedido = function () {
                 if (cantidad_producto === '') {
                     cantidad_producto = 0;
                 } else {
-                    cantidad_producto = parseInt(cantidad_producto);
+                    if (!/^\d+$/.test(cantidad_producto)) {
+                        cantidad_producto = 0;
+                    } else {
+                        cantidad_producto = parseInt(cantidad_producto);
+                    }
                 }
 
                 monto_total += precio_producto * cantidad_producto;
