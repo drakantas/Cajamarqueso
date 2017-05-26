@@ -4,9 +4,10 @@ class Pedido
     {
         this.routes = routes;
         this.selectors = selectors;
+        this.vanillaSelectors = $.extend({}, selectors);
 
-        Object.keys(this.selectors).map((key, index) => {
-            this.selectors[key] = $(this.selectors[key]);
+        $.map(this.selectors, (value, key) => {
+            this.selectors[key] = $(value);
         });
     }
 
@@ -21,6 +22,8 @@ class Pedido
         this.addNewProductEvent();
 
         this.addTotalPriceEvent();
+
+        this.addRemoveProductEvent();
     }
 
     grabData()
@@ -160,7 +163,7 @@ class Pedido
             <div class="panel panel-default product">
                 <div class="panel-body">
                     <div class="col-md-3 text-center">
-                        <button type="button" class="btn btn-danger">
+                        <button type="button" class="btn btn-danger remove_product">
                             <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
                         </button>
                     </div>
@@ -175,10 +178,6 @@ class Pedido
     updateTotalAmount()
     {
         var productos = this.selectors['carrito'].find('.product');
-
-        if (productos.length === 0) {
-            return;
-        }
 
         var monto_total = 0.0;
 
@@ -204,9 +203,17 @@ class Pedido
 
     addTotalPriceEvent()
     {
-        var selector = this.selectors['carrito'].find('.product input[type="text"]');
+        $(document).on('change paste', this.vanillaSelectors['carrito'] + ' .product input[type="text"]', () => {
+            this.updateTotalAmount();
+        });
+    }
 
-        $(document).on('change paste', selector, () => {
+    addRemoveProductEvent()
+    {
+        $(document).on('click', this.vanillaSelectors['carrito'] + ' .product .remove_product', (event) => {
+
+            $(event.currentTarget).parent().parent().parent().remove();
+
             this.updateTotalAmount();
         });
     }

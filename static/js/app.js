@@ -107,9 +107,10 @@ var Pedido = function () {
 
         this.routes = routes;
         this.selectors = selectors;
+        this.vanillaSelectors = $.extend({}, selectors);
 
-        Object.keys(this.selectors).map(function (key, index) {
-            _this.selectors[key] = $(_this.selectors[key]);
+        $.map(this.selectors, function (value, key) {
+            _this.selectors[key] = $(value);
         });
     }
 
@@ -127,6 +128,8 @@ var Pedido = function () {
             this.addNewProductEvent();
 
             this.addTotalPriceEvent();
+
+            this.addRemoveProductEvent();
         }
     }, {
         key: 'grabData',
@@ -252,16 +255,12 @@ var Pedido = function () {
     }, {
         key: 'buildProductDom',
         value: function buildProductDom(id, name, stock) {
-            return '\n            <div class="panel panel-default product">\n                <div class="panel-body">\n                    <div class="col-md-3 text-center">\n                        <button type="button" class="btn btn-danger">\n                            <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>\n                        </button>\n                    </div>\n                    <div class="col-md-9">\n                        <label for="producto_' + id + '" class="selected_product_name">' + name + '</label><br>\n                        <input type="text" class="form-control" id="producto_' + id + '" name="producto_' + id + '" placeholder="Stock: ' + stock + '">\n                    </div>\n                </div>\n            </div>';
+            return '\n            <div class="panel panel-default product">\n                <div class="panel-body">\n                    <div class="col-md-3 text-center">\n                        <button type="button" class="btn btn-danger remove_product">\n                            <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>\n                        </button>\n                    </div>\n                    <div class="col-md-9">\n                        <label for="producto_' + id + '" class="selected_product_name">' + name + '</label><br>\n                        <input type="text" class="form-control" id="producto_' + id + '" name="producto_' + id + '" placeholder="Stock: ' + stock + '">\n                    </div>\n                </div>\n            </div>';
         }
     }, {
         key: 'updateTotalAmount',
         value: function updateTotalAmount() {
             var productos = this.selectors['carrito'].find('.product');
-
-            if (productos.length === 0) {
-                return;
-            }
 
             var monto_total = 0.0;
 
@@ -288,10 +287,20 @@ var Pedido = function () {
         value: function addTotalPriceEvent() {
             var _this6 = this;
 
-            var selector = this.selectors['carrito'].find('.product input[type="text"]');
-
-            $(document).on('change paste', selector, function () {
+            $(document).on('change paste', this.vanillaSelectors['carrito'] + ' .product input[type="text"]', function () {
                 _this6.updateTotalAmount();
+            });
+        }
+    }, {
+        key: 'addRemoveProductEvent',
+        value: function addRemoveProductEvent() {
+            var _this7 = this;
+
+            $(document).on('click', this.vanillaSelectors['carrito'] + ' .product .remove_product', function (event) {
+
+                $(event.currentTarget).parent().parent().parent().remove();
+
+                _this7.updateTotalAmount();
             });
         }
     }]);
