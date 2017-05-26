@@ -20,7 +20,7 @@
                         <a href="/" class="logo"></a>
                         <ul class="nav">
                             <li><a href="/pedido/nuevo" class="{% block nuevo_pedido %}{% endblock %}">Nuevo Pedido</a></li>
-                            <li><a href="#">Registrar Pago</a></li>
+                            <li><a href="/pedido/pago" class="{% block registrar_pago %}{% endblock %}">Registrar Pago</a></li>
                             <li><a href="#">Actualizar Pedido</a></li>
                             <li><a href="#">Ventas</a></li>
                             <li><a href="#">Productos</a></li>
@@ -36,6 +36,7 @@
             </div>
         </div>
         {% block footer %}{% endblock %}
+        {% include "pedidos/buscar.html" %}
     </div>
     <!-- Scripts -->
     <script src="/static/js/app.js"></script>

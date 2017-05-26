@@ -1,7 +1,37 @@
 from ..abc import Model
+from ..date import date
 
 
 class Pedido(Model):
+    async def get_pedidos(self, id_cliente: int, estado_importa: bool = False) -> list:
+        pedidos = await self.db.query('SELECT id_pedido, cliente_id, fecha_realizado, estado, '
+                                      'sum(detalle_pedido.cantidad * (SELECT precio FROM t_producto WHERE '
+                                      'id_producto = detalle_pedido.producto_id)) as importe_total FROM t_pedido '
+                                      'LEFT JOIN t_detalle_pedido ON detalle_pedido.pedido_id = pedido.id_pedido '
+                                      'WHERE cliente_id = $1 GROUP BY id_pedido ORDER BY fecha_realizado DESC',
+                                      (id_cliente,))
+        results = list()
+
+        for pedido in pedidos:
+            result = dict()
+
+            if estado_importa:
+                if pedido['estado'] == 1:
+                    continue
+
+            result = {k: v for k, v in pedido.items()}
+
+            result['fecha_realizado'] = await date().parse(result['fecha_realizado'])
+            result['detalles'] = [{k: v for k, v in detalle.items()}
+                                  for detalle in (await self.get_detalles(pedido['id_pedido']))]
+            results.append(result)
+
+        return results
+
+    async def get_detalles(self, id_pedido: int) -> list:
+        detalles = await self.db.query('SELECT * FROM t_detalle_pedido WHERE pedido_id = $1', (id_pedido,))
+        return detalles
+
     async def create(self, data: dict) -> bool:
         pedido = await self.create_pedido(data)
 

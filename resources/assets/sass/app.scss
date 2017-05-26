@@ -125,3 +125,42 @@ $text-color: #636b6f;
     padding-left: 9px;
     padding-right: 9px;
 }
+
+.client-orders {
+    position: relative;
+}
+
+.client-orders .orders-header {
+    border: 1px solid #DEDEDE;
+    border-radius: 4px;
+    font-weight: 700;
+    color: #9E9E9E;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.client-orders .order {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    text-align: center;
+    color: #7E7E7E;
+    border-width: 2px;
+    border-style: solid;
+    border-color: transparent;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.client-orders .order.selected {
+    border-color: #337AB7;
+    background-color: rgba(51, 122, 183, 0.15);
+    box-shadow: 0 2px 4px rgba(51, 122, 183, 0.40);
+}
+
+.search-results-options {
+    position: absolute;
+    top: 20px;
+    right: 0;
+}

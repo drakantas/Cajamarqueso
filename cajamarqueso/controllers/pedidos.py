@@ -6,7 +6,7 @@ from aiohttp_jinja2 import template
 from ..abc import Controller
 from ..date import date
 
-Controllers = ('GenerarPedido', 'RegistrarPago', 'ListarPedidos')
+Controllers = ('GenerarPedido', 'RegistrarPago', 'BuscarPedido')
 
 PRODUCT_KEY_PATTERN = r'producto_[1-9][0-9]*'
 
@@ -139,5 +139,19 @@ class RegistrarPago(Controller):
     pass
 
 
-class ListarPedidos(Controller):
-    pass
+class BuscarPedido(Controller):
+    @template('pedidos/resultados.html')
+    async def show_results(self, request):
+        data = await request.post()
+
+        cliente = await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_cliente')(data['id_cliente'])
+
+        return {
+            'cliente': cliente,
+            'pedidos': await self.get_pedidos(cliente['id_cliente'], estado_importa=True)
+        }
+
+    async def get_pedidos(self, id_cliente: Union[str, int], estado_importa: bool = False) -> list:
+        pedido_model = self.app.mvc.models['pedido']
+
+        return await pedido_model.get_pedidos(id_cliente, estado_importa=estado_importa)

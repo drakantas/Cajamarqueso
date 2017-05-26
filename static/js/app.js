@@ -120,7 +120,7 @@ var Pedido = function () {
             var _this2 = this;
 
             this.selectors['buscar-cliente'].find('#search').on('click', function () {
-                _this2.poll();
+                _this2.poll(_this2.selectors['buscar-cliente'], '#search', _this2.routes['nuevo-pedido'], ['#search_type', '#search_query']);
             });
 
             this.addClickEventToProducts();
@@ -130,11 +130,17 @@ var Pedido = function () {
             this.addTotalPriceEvent();
 
             this.addRemoveProductEvent();
+
+            this.setSearchOrderEvent();
+
+            this.setSearchResultsEvent();
+
+            this.setResultOptionsEvents();
         }
     }, {
         key: 'grabData',
-        value: function grabData() {
-            var _ref = [this.selectors['buscar-cliente'].find('#search_type'), this.selectors['buscar-cliente'].find('#search_query')],
+        value: function grabData(selector, input) {
+            var _ref = [selector.find(input[0]), selector.find(input[1])],
                 search_type = _ref[0],
                 search_query = _ref[1];
 
@@ -143,10 +149,10 @@ var Pedido = function () {
         }
     }, {
         key: 'poll',
-        value: function poll() {
+        value: function poll(selector, trigger, action, input) {
             var _this3 = this;
 
-            var data = this.grabData();
+            var data = this.grabData(selector, input);
             var route = this.routes['buscar-cliente'] + ('/' + data[0] + '/' + data[1]);
 
             $.ajax(route, {
@@ -154,19 +160,19 @@ var Pedido = function () {
                 context: this,
                 dataType: 'json',
                 beforeSend: function beforeSend() {
-                    _this3.selectors['buscar-cliente'].find('#search').button('loading');
+                    selector.find(trigger).button('loading');
                 },
                 success: function success(response) {
-                    _this3.showResults(response);
+                    _this3.showResults(selector, response, action);
                 },
                 complete: function complete() {
-                    _this3.selectors['buscar-cliente'].find('#search').button('reset');
+                    selector.find(trigger).button('reset');
                 }
             });
         }
     }, {
         key: 'showResults',
-        value: function showResults(results) {
+        value: function showResults(selector, results, action) {
             results = JSON.parse(results);
 
             if (results[0] == null) {
@@ -174,7 +180,7 @@ var Pedido = function () {
                 return;
             }
 
-            results_dom = '<hr><div class="col-sm-12">\n            <form class="search-results" method="post" action="' + this.routes['nuevo-pedido'] + '">';
+            results_dom = '<hr><div class="col-sm-12">\n            <form class="search-results" method="post" action="' + action + '">';
 
             for (var i = 0; i < results.length; i++) {
                 var result = results[i];
@@ -184,7 +190,7 @@ var Pedido = function () {
 
             results_dom = results_dom + '\n                <div class="text-center">\n                    <button type="submit" class="btn btn-primary">\n                        Seleccionar cliente\n                    </button>\n                </div>\n            </form>\n        </div>';
 
-            this.selectors['buscar-cliente'].find('.modal-body .search_results').html(results_dom);
+            selector.find('.modal-body .search_results').html(results_dom);
         }
     }, {
         key: 'showAlert',
@@ -307,6 +313,90 @@ var Pedido = function () {
                 _this7.updateTotalAmount();
             });
         }
+    }, {
+        key: 'setSearchOrderEvent',
+        value: function setSearchOrderEvent() {
+            var _this8 = this;
+
+            $('a[href$="/pedido/pago"]').on('click', function (event) {
+                // No realizar la redirección
+                event.preventDefault();
+
+                // Mostrar modal de búsqueda de pedido
+                _this8.selectors['buscar-pedido'].modal('show');
+            });
+
+            this.selectors['buscar-pedido'].find('#o_search').on('click', function () {
+                _this8.poll(_this8.selectors['buscar-pedido'], '#o_search', _this8.routes['pedidos'], ['#o_search_type', '#o_search_query']);
+            });
+        }
+    }, {
+        key: 'setSearchResultsEvent',
+        value: function setSearchResultsEvent() {
+            var _this9 = this;
+
+            this.selectors['resultado-pedido'].on('click', function (event) {
+                var _s = $(event.currentTarget);
+                var _a = _this9.getSelectedResult();
+
+                if (_a === null) {
+                    _s.addClass('selected');
+                    return;
+                } else if (_a === _s) {
+                    return;
+                }
+
+                _a.removeClass('selected');
+                _s.addClass('selected');
+            });
+        }
+    }, {
+        key: 'setResultOptionsEvents',
+        value: function setResultOptionsEvents() {
+            var _this10 = this;
+
+            this.selectors['registrar-pago'].on('click', function () {
+                var pedido_id = _this10.validateSelectedOrder();
+                if (pedido_id !== null) {
+                    window.location.replace(_this10.routes['registrar-pago'] + ('/' + pedido_id + '/'));
+                }
+            });
+
+            this.selectors['actualizar-pedido'].on('click', function () {
+                var pedido_id = _this10.validateSelectedOrder();
+                if (pedido_id !== null) {
+                    window.location.replace(_this10.routes['actualizar-pedido'] + ('/' + pedido_id + '/'));
+                }
+            });
+        }
+    }, {
+        key: 'validateSelectedOrder',
+        value: function validateSelectedOrder() {
+            var selected = this.getSelectedResult();
+
+            if (selected === null) {
+                return null;
+            }
+
+            var _id = parseInt(selected.data('pedido-id'));
+
+            if (isNaN(_id)) {
+                return null;
+            }
+
+            return _id;
+        }
+    }, {
+        key: 'getSelectedResult',
+        value: function getSelectedResult() {
+            var active = $(this.vanillaSelectors['resultado-pedido'] + '.selected').get(0);
+
+            if (typeof active === 'undefined') {
+                return null;
+            }
+
+            return $(active);
+        }
     }]);
 
     return Pedido;
@@ -314,13 +404,20 @@ var Pedido = function () {
 
 var pedido = new Pedido({
     'buscar-cliente': '/buscar-cliente',
-    'nuevo-pedido': '/pedido/nuevo'
+    'nuevo-pedido': '/pedido/nuevo',
+    'pedidos': '/pedidos',
+    'registrar-pago': '/pedido/registrar-pago',
+    'actualizar-pedido': '/pedido/actualizar'
 }, {
     'buscar-cliente': '#buscar-cliente',
     'lista-productos': '#products-list',
     'agregar-producto': '#agregar-producto',
     'carrito': '.selected-products',
-    'monto-total': '.monto_total'
+    'monto-total': '.monto_total',
+    'buscar-pedido': '#buscar-pedido',
+    'resultado-pedido': '.client-orders .order',
+    'registrar-pago': '#registrar-pago',
+    'actualizar-pedido': '#actualizar-pedido'
 });
 pedido.initialize();
 
