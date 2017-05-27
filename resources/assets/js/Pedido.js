@@ -280,6 +280,11 @@ class Pedido
             var pedido_id = this.validateSelectedOrder();
             if (pedido_id !== null) {
                 window.location.replace(this.routes['registrar-pago'] + `/${pedido_id}`);
+            } else {
+                $('#error_no_selecciono_pedido').modal('show');
+                setTimeout(() => {
+                    $('#error_no_selecciono_pedido').modal('hide');
+                }, 1500);
             }
         });
 
@@ -287,6 +292,11 @@ class Pedido
             var pedido_id = this.validateSelectedOrder();
             if (pedido_id !== null) {
                 window.location.replace(this.routes['actualizar-pedido'] + `/${pedido_id}`);
+            } else {
+                $('#error_no_selecciono_pedido').modal('show');
+                setTimeout(() => {
+                    $('#error_no_selecciono_pedido').modal('hide');
+                }, 1500);
             }
         });
     }

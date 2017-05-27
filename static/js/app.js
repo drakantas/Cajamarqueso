@@ -369,6 +369,11 @@ var Pedido = function () {
                 var pedido_id = _this10.validateSelectedOrder();
                 if (pedido_id !== null) {
                     window.location.replace(_this10.routes['registrar-pago'] + ('/' + pedido_id));
+                } else {
+                    $('#error_no_selecciono_pedido').modal('show');
+                    setTimeout(function () {
+                        $('#error_no_selecciono_pedido').modal('hide');
+                    }, 1500);
                 }
             });
 
@@ -376,6 +381,11 @@ var Pedido = function () {
                 var pedido_id = _this10.validateSelectedOrder();
                 if (pedido_id !== null) {
                     window.location.replace(_this10.routes['actualizar-pedido'] + ('/' + pedido_id));
+                } else {
+                    $('#error_no_selecciono_pedido').modal('show');
+                    setTimeout(function () {
+                        $('#error_no_selecciono_pedido').modal('hide');
+                    }, 1500);
                 }
             });
         }

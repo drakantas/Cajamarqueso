@@ -263,7 +263,8 @@ class ActualizarPedido(Controller):
                 producto = await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_producto')(producto_id)
 
                 if cantidad > (current_data[producto_id] + producto['stock']):
-                    return 'La cantidad de productos ingresada no puede ser mayor al stock disponible.'
+                    return 'La cantidad de productos ingresada no puede ser mayor al stock disponible y los cantidad ' \
+                           'de productos que están registrados en este momento.'
 
         return True
 
