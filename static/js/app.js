@@ -136,6 +136,8 @@ var Pedido = function () {
             this.setSearchResultsEvent();
 
             this.setResultOptionsEvents();
+
+            this.updateTotalAmount();
         }
     }, {
         key: 'grabData',
@@ -154,6 +156,11 @@ var Pedido = function () {
 
             var data = this.grabData(selector, input);
             var route = this.routes['buscar-cliente'] + ('/' + data[0] + '/' + data[1]);
+
+            if (data[1] == '') {
+                this.showAlert(selector, 'Debes de llenar el campo de búsqueda.');
+                return;
+            }
 
             $.ajax(route, {
                 type: 'POST',
@@ -176,7 +183,7 @@ var Pedido = function () {
             results = JSON.parse(results);
 
             if (results[0] == null) {
-                this.showAlert();
+                this.showAlert(selector, 'No se encontró a ningún cliente.');
                 return;
             }
 
@@ -194,10 +201,10 @@ var Pedido = function () {
         }
     }, {
         key: 'showAlert',
-        value: function showAlert() {
-            var alert = '<hr>\n            <div class="col-sm-12">\n                <div class="alert alert-danger" role="alert">\n                    No se encontr\xF3 a ning\xFAn cliente.\n                </div>\n            </div>';
+        value: function showAlert(selector, alert_message) {
+            var alert = '<hr>\n            <div class="col-sm-12">\n                <div class="alert alert-danger" role="alert">\n                    ' + alert_message + '\n                </div>\n            </div>';
 
-            this.selectors['buscar-cliente'].find('.modal-body .search_results').html(alert);
+            selector.find('.modal-body .search_results').html(alert);
         }
     }, {
         key: 'selectedProduct',
@@ -237,8 +244,11 @@ var Pedido = function () {
         value: function addNewProductEvent() {
             var _this5 = this;
 
-            this.selectors['agregar-producto'].on('click', function () {
+            this.selectors['agregar-producto'].on('click', function (event) {
                 var producto = _this5.selectedProduct();
+
+                console.log('smh');
+                console.log(event);
 
                 if (producto === null) {
                     return;
@@ -318,7 +328,7 @@ var Pedido = function () {
         value: function setSearchOrderEvent() {
             var _this8 = this;
 
-            $('a[href$="/pedido/pago"]').on('click', function (event) {
+            $('a[href$="/pedido/pago"], a[href$="/pedido/actualizar"]').on('click', function (event) {
                 // No realizar la redirección
                 event.preventDefault();
 

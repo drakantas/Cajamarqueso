@@ -213,7 +213,6 @@ class ActualizarPedido(Controller):
     @template('pedidos/generar.html')
     async def show(self, request):
         id_pedido = int(request.match_info['pedido_id'])
-
         pedido = await self.app.mvc.models['pedido'].get(id_pedido)
 
         if not pedido:
@@ -221,6 +220,57 @@ class ActualizarPedido(Controller):
 
         return {**pedido,
                 'productos': await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_productos')()}
+
+    @template('pedidos/generar.html')
+    async def post(self, request):
+        data = await request.post()
+
+        detalles = {int(k[9:]): int(v) for k, v in data.items() if re.fullmatch(PRODUCT_KEY_PATTERN, k)}
+
+        id_pedido = int(request.match_info['pedido_id'])
+        pedido = await self.app.mvc.models['pedido'].get(id_pedido)
+        _detalles = (await self.app.mvc.models['pedido'].get(id_pedido))['detalles']
+
+        if not pedido:
+            raise HTTPNotFound
+
+        validate = await self.validate(detalles, {_d['producto_id']: _d['cantidad'] for _d in _detalles})
+
+        alert = {}
+
+        if isinstance(validate, str):
+            alert = {'error': validate}
+        elif validate is True:
+            result = await self.update(id_pedido, _detalles, detalles)
+            if result:
+                alert = {'success': 'Se actualizó el pedido exitosamente.'}
+            else:
+                alert = {'error': 'No se pudo actualizar el pedido, por favor inténtelo más tarde.'}
+
+        # Actualizar pedido con nuevos detalles
+        pedido = await self.app.mvc.models['pedido'].get(id_pedido)
+
+        return {**pedido,
+                **alert,
+                'productos': await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_productos')()}
+
+    async def validate(self, data: dict, current_data: dict) -> Union[str, bool]:
+        for producto_id, cantidad in data.items():
+            if cantidad <= 0:
+                return 'La cantidad de productos ingresada debe de ser mayor que 0.'
+
+            if producto_id in current_data.keys():
+                producto = await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_producto')(producto_id)
+
+                if cantidad > (current_data[producto_id] + producto['stock']):
+                    return 'La cantidad de productos ingresada no puede ser mayor al stock disponible.'
+
+        return True
+
+    async def update(self, id_pedido: int, data: dict, new_data: dict) -> bool:
+        pedido_model = self.app.mvc.models['pedido']
+
+        return await pedido_model.update_detalles(id_pedido, data, new_data)
 
 
 
@@ -233,7 +283,7 @@ class BuscarPedido(Controller):
 
         return {
             'cliente': cliente,
-            'pedidos': await self.get_pedidos(cliente['id_cliente'], estado_importa=True)
+            'pedidos': await self.get_pedidos(cliente['id_cliente'], estado_importa=False)
         }
 
     async def get_pedidos(self, id_cliente: Union[str, int], estado_importa: bool = False) -> list:

@@ -52,6 +52,11 @@ class Pedido(Model):
             'pago': {k: v for k, v in pago.items()} if pago else {}
         })
 
+        try:
+            pedido['pago']['fecha_realizado'] = await date().parse(pedido['pago']['fecha_realizado'])
+        except KeyError:
+            pass
+
         importe_total = 0
 
         for detalle in pedido['detalles']:
@@ -111,3 +116,52 @@ class Pedido(Model):
                                     (pedido_values[0], pedido_values[1]), first=True)
 
         return pedido if pedido else False
+
+    async def update_detalles(self, id_pedido: int, data: dict, new_data: dict):
+        # Listas con las consultas que se realizarán
+        to_del, to_upd, to_add = list(), list(), list()
+
+        _data = {}
+
+        for detalle in data:
+            _data[detalle['producto_id']] = detalle['cantidad']
+
+        data = _data
+
+        for producto_id, cantidad in new_data.items():
+            # Nuevo detalle
+            if producto_id not in data.keys():
+                to_add.append((
+                    'INSERT INTO t_detalle_pedido (pedido_id, producto_id, cantidad) VALUES ($1, $2, $3)',
+                    (id_pedido, producto_id, cantidad)))
+                to_upd.append((
+                    'UPDATE t_producto SET stock = stock - $1 WHERE id_producto = $2',
+                    (cantidad, producto_id)))
+            else:
+                if data[producto_id] == cantidad:
+                    continue
+
+                to_upd.append((
+                    'UPDATE t_detalle_pedido SET cantidad = $1 WHERE pedido_id = $2 AND producto_id = $3',
+                    (cantidad, id_pedido, producto_id)))
+                to_upd.append((
+                    'UPDATE t_producto SET stock = stock + $1 WHERE id_producto = $2',
+                    (data[producto_id] - cantidad, producto_id)))
+
+        for producto_id, cantidad in {k: v for k, v in data.items() if k not in new_data.keys()}.items():
+            to_del.append((
+                'DELETE FROM t_detalle_pedido WHERE pedido_id = $1 AND producto_id = $2',
+                (id_pedido, producto_id)))
+            to_upd.append((
+                'UPDATE t_producto SET stock = stock + $1 WHERE id_producto = $2',
+                (cantidad, producto_id)))
+
+        queries = list()
+        queries.extend(to_add)
+        queries.extend(to_upd)
+        queries.extend(to_del)
+
+        values = [query[1] for query in queries]
+        queries = [query[0] for query in queries]
+
+        return await self.db.update(queries, values=values)

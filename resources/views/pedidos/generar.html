@@ -2,7 +2,17 @@
 
 {% block title %}Generar pedido{% endblock %}
 
-{% block nuevo_pedido %}active{% endblock %}
+{% block nuevo_pedido %}
+    {% if id_pedido is not defined %}
+        active
+    {% endif %}
+{% endblock %}
+
+{% block actualizar_pedido %}
+    {% if id_pedido is defined %}
+        active
+    {% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="{% if not cliente%}no-client{% endif %}">
@@ -28,48 +38,98 @@
         </div>
     {% else %}
         <div class="row">
-            <h2>Datos del cliente</h2>
+            <h2>
+                {% if id_pedido is defined %}
+                    Actualizar pedido
+                {% else %}
+                    Generar nuevo pedido
+                {% endif %}
+            </h2>
             <hr>
-            <div class="col-md-12">
+            <div class="col-md-6">
+                <h4>Datos de cliente</h4>
                 <p><strong>DNI </strong> {{ cliente.id_cliente }}</p>
                 <p><strong>Nombre </strong> {{ cliente.nombre_cliente }}</p>
                 <p><strong>Teléfono </strong> {{ cliente.telefono_cliente }}</p>
                 <p><strong>Email </strong> {{ cliente.email_cliente }}</p>
-
-                <div class="text-right search-again">
-                    <p><em>¿Este no es el cliente que querías?</em></p>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#buscar-cliente">
-                        Buscar otro
-                    </button>
-                </div>
-
+            </div>
+            <div class="col-md-6">
+                {% if id_pedido is not defined %}
+                    <div class="text-right search-again">
+                        <p><em>¿Este no es el cliente que querías?</em></p>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#buscar-cliente">
+                            Buscar otro
+                        </button>
+                    </div>
+                {% else %}
+                <h4>Datos de pago</h4>
+                    {% if not pago.items() %}
+                        <div class="alert alert-info">No se ha registrado ningún pago por este pedido.</div>
+                    {% else %}
+                        <p><strong>Fecha realizado</strong> {{ pago.fecha_realizado }}</p>
+                        <p><strong>Importe pagado (S/.)</strong> {{ pago.importe_pagado }}</p>
+                    {% endif%}
+                {% endif %}
             </div>
         </div>
         <div class="row">
             <hr>
         </div>
     {% endif %}
+{% if id_pedido is defined %}
+    <form class="form-horizontal" method="post" action="/pedido/actualizar/{{ id_pedido }}">
+{% else %}
     <form class="form-horizontal" method="post" action="/pedido/registrar-nuevo">
+{% endif %}
         {% if cliente %}
             <input type="hidden" name="id_cliente" value="{{ cliente.id_cliente }}">
         {% endif %}
         <div class="row">
             <div class="col-md-7 products-list" id="products-list">
                 {% for producto in productos %}
-                    <div class="col-md-4 product">
-                        <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto" value="{{ producto.id_producto }}">
-                        <label for="selector_item_{{ producto.id_producto }}" class="text-center">
-                            <img src="data:image/png;base64,{{ producto.imagen_producto.decode('utf-8') }}">
-                            <strong class="product_name">{{ producto.nombre_producto }} {{ producto.variedad_producto }}</strong><br>
-                            Stock: <span class="product_stock">{{ producto.stock }}</span><br>
-                            S/. <span class="product_price">{{ producto.precio }}</span>
-                        </label>
-                    </div>
+                    {% if id_pedido is defined %}
+                        <div class="col-md-4 product">
+                            <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto" value="{{ producto.id_producto }}">
+                            <label for="selector_item_{{ producto.id_producto }}" class="text-center">
+                                <img src="data:image/png;base64,{{ producto.imagen_producto.decode('utf-8') }}">
+                                <strong class="product_name">{{ producto.nombre_producto }} {{ producto.variedad_producto }}</strong><br>
+                                Stock: <span class="product_stock">{{ producto.stock }}</span><br>
+                                S/. <span class="product_price">{{ producto.precio }}</span>
+                            </label>
+                        </div>
+                    {% elif id_pedido is not defined and producto.stock > 0 %}
+                        <div class="col-md-4 product">
+                            <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto" value="{{ producto.id_producto }}">
+                            <label for="selector_item_{{ producto.id_producto }}" class="text-center">
+                                <img src="data:image/png;base64,{{ producto.imagen_producto.decode('utf-8') }}">
+                                <strong class="product_name">{{ producto.nombre_producto }} {{ producto.variedad_producto }}</strong><br>
+                                Stock: <span class="product_stock">{{ producto.stock }}</span><br>
+                                S/. <span class="product_price">{{ producto.precio }}</span>
+                            </label>
+                        </div>
+                    {% endif %}
                 {% endfor %}
 
             </div>
             <div class="col-md-5">
                 <div class="selected-products">
+                    {% if detalles is defined %}
+                        {% for detalle in detalles %}
+                            <div class="panel panel-default product">
+                                <div class="panel-body">
+                                    <div class="col-md-3 text-center">
+                                        <button type="button" class="btn btn-danger remove_product">
+                                            <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <label for="producto_{{ detalle.producto_id }}" class="selected_product_name">{{ detalle.nombre_producto }} {{ detalle.variedad_producto }}</label><br>
+                                        <input type="text" class="form-control" id="producto_{{ detalle.producto_id }}" name="producto_{{ detalle.producto_id }}" placeholder="Stock: {{ detalle.stock }}" value="{{ detalle.cantidad }}">
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
                 <button type="button" class="btn btn-default btn-block" id="agregar-producto">
                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Agregar producto
@@ -101,7 +161,7 @@
                 <div class="form-group">
                     <label for="estado_pedido" class="col-sm-5 control-label">Estado</label>
                     <div class="col-sm-7">
-                        <select class="form-control" id="estado_pedido" name="estado_pedido">
+                        <select class="form-control" id="estado_pedido" name="estado_pedido" {% if id_pedido is defined %}disabled{% endif %}>
                             {% if id_pedido is defined %}
                                 <option value="1" {% if estado == 1 %}selected{% endif %}>Pagado</option>
                                 <option value="2" {% if estado == 2 %}selected{% endif %}>No pagado</option>
@@ -128,12 +188,23 @@
             <hr>
         </div>
         <div class="row text-right">
+            {% if id_pedido is defined %}
+                <a href="javascript:window.print()" class="btn btn-default" id="imprimir-pedido">
+                    <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
+                </a>
+            {% endif %}
             <a href="/" class="btn btn-default" id="cancelar-accion">
                 Cancelar
             </a>
-            <button type="submit" class="btn btn-primary">
-                Generar
-            </button>
+            {% if id_pedido is defined %}
+                <button type="submit" class="btn btn-primary">
+                    Guardar
+                </button>
+            {% else %}
+                <button type="submit" class="btn btn-primary">
+                    Generar
+                </button>
+            {% endif %}
         </div>
     </form>
 </div>

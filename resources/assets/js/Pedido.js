@@ -31,6 +31,8 @@ class Pedido
         this.setSearchResultsEvent();
 
         this.setResultOptionsEvents();
+
+        this.updateTotalAmount();
     }
 
     grabData(selector, input)
@@ -45,6 +47,11 @@ class Pedido
     {
         var data = this.grabData(selector, input);
         var route = this.routes['buscar-cliente'] + `/${data[0]}/${data[1]}`;
+
+        if (data[1] == '') {
+            this.showAlert(selector, 'Debes de llenar el campo de búsqueda.');
+            return;
+        }
 
         $.ajax(route, {
             type: 'POST',
@@ -67,7 +74,7 @@ class Pedido
         results = JSON.parse(results);
 
         if (results[0] == null) {
-            this.showAlert();
+            this.showAlert(selector, 'No se encontró a ningún cliente.');
             return;
         }
 
@@ -97,16 +104,16 @@ class Pedido
         selector.find('.modal-body .search_results').html(results_dom);
     }
 
-    showAlert()
+    showAlert(selector, alert_message)
     {
         var alert = `<hr>
             <div class="col-sm-12">
                 <div class="alert alert-danger" role="alert">
-                    No se encontró a ningún cliente.
+                    ${alert_message}
                 </div>
             </div>`;
 
-        this.selectors['buscar-cliente'].find('.modal-body .search_results').html(alert);
+        selector.find('.modal-body .search_results').html(alert);
     }
 
     selectedProduct()
@@ -142,8 +149,11 @@ class Pedido
 
     addNewProductEvent()
     {
-        this.selectors['agregar-producto'].on('click', () => {
+        this.selectors['agregar-producto'].on('click', (event) => {
             var producto = this.selectedProduct();
+
+            console.log('smh');
+            console.log(event);
 
             if (producto === null) {
                 return;
@@ -231,7 +241,7 @@ class Pedido
 
     setSearchOrderEvent()
     {
-        $('a[href$="/pedido/pago"]').on('click', (event) => {
+        $('a[href$="/pedido/pago"], a[href$="/pedido/actualizar"]').on('click', (event) => {
             // No realizar la redirección
             event.preventDefault();
 
