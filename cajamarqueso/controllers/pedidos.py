@@ -50,7 +50,7 @@ class GenerarPedido(Controller):
             if post_data:
                 alert = {'success': 'Se ha generado el pedido exitosamente.'}
             else:
-                alert = {'error': 'Algo ha sucedido, no se pudo generar el pedido.'}
+                alert = {'error': 'Algo ha sucedido, no se pudo generar el pedido. Por favor, inténtelo más tarde.'}
 
         return {
             **alert,
@@ -94,7 +94,7 @@ class GenerarPedido(Controller):
         try:
             estado_pedido = int(data['estado_pedido'])
         except ValueError:
-            return 'El estado de pedido deberá de ser un número entero.'
+            return 'El estado que ha seleccionado no es válido.'
 
         if estado_pedido not in (e.value for e in EstadoPedido):
             return 'El estado de pedido brindado es incorrecto. Por favor, inténtelo de nuevo.'
@@ -197,10 +197,15 @@ class RegistrarPago(Controller):
         except KeyError:
             return 'El importe total debe de ser brindado.'
 
+        ahora = await date().now()
+        nombre_cliente = await self.app.mvc.models['pedido'].get_client_name(id_pedido)
+        nro_comprobante = nombre_cliente[:3].upper() + (await date().get_code_format(ahora)) + data['id_pedido'].zfill(4)
+
         return {
             'id_pedido': id_pedido,
             'importe_total': importe_total,
-            'ahora': await date().now()
+            'ahora': ahora,
+            'nro_comprobante': nro_comprobante
         }
 
     async def update(self, data: dict):
@@ -225,7 +230,7 @@ class ActualizarPedido(Controller):
     async def post(self, request):
         data = await request.post()
 
-        detalles = {int(k[9:]): int(v) for k, v in data.items() if re.fullmatch(PRODUCT_KEY_PATTERN, k)}
+        detalles = {int(k[9:]): v for k, v in data.items() if re.fullmatch(PRODUCT_KEY_PATTERN, k)}
 
         id_pedido = int(request.match_info['pedido_id'])
         pedido = await self.app.mvc.models['pedido'].get(id_pedido)
@@ -241,6 +246,9 @@ class ActualizarPedido(Controller):
         if isinstance(validate, str):
             alert = {'error': validate}
         elif validate is True:
+
+            detalles = {k: int(v) for k, v in detalles.items()}
+
             result = await self.update(id_pedido, _detalles, detalles)
             if result:
                 alert = {'success': 'Se actualizó el pedido exitosamente.'}
@@ -256,8 +264,13 @@ class ActualizarPedido(Controller):
 
     async def validate(self, data: dict, current_data: dict) -> Union[str, bool]:
         for producto_id, cantidad in data.items():
+            try:
+                cantidad = int(cantidad)
+            except ValueError:
+                return 'La cantidad de productos ingresada debe de ser  un número entero mayor que 0.'
+
             if cantidad <= 0:
-                return 'La cantidad de productos ingresada debe de ser mayor que 0.'
+                return 'La cantidad de productos ingresada debe de ser  un número entero mayor que 0.'
 
             if producto_id in current_data.keys():
                 producto = await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_producto')(producto_id)

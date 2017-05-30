@@ -66,8 +66,9 @@
                     {% if not pago.items() %}
                         <div class="alert alert-info">No se ha registrado ningún pago por este pedido.</div>
                     {% else %}
+                        <p><strong>Nº de comprobante</strong> {{ pago.nro_comprobante }}</p>
                         <p><strong>Fecha realizado</strong> {{ pago.fecha_realizado }}</p>
-                        <p><strong>Importe pagado (S/.)</strong> {{ pago.importe_pagado }}</p>
+                        <p><strong>Importe pagado (S/.)</strong> {{ importe_pagado }}</p>
                     {% endif%}
                 {% endif %}
             </div>
@@ -176,7 +177,7 @@
             <div class="col-sm-6">
                 <div class="form-group">
                     <label class="col-sm-5 control-label">
-                        Monto
+                        Monto total
                     </label>
                     <div class="col-sm-7" style="padding-top:6px;padding-bottom:6px;line-height:1.42857143;">
                         S/. <span class="monto_total">0.00</span>

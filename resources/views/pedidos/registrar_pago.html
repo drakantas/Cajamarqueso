@@ -7,7 +7,7 @@
 {% block content %}
     {% if error %}
         <div class="row">
-            <div class="alert alert-error" role="alert">
+            <div class="alert alert-danger" role="alert">
                 {{ error }}
             </div>
         </div>
@@ -15,7 +15,7 @@
     {% if success %}
         <div class="row">
             <div class="alert alert-success" role="alert">
-                {{ success }}
+                {{ success }} <a href="javascript:window.print()" class="btn btn-success" id="imprimir-pedido">Imprimir</a>
             </div>
         </div>
     {% endif %}
@@ -91,15 +91,10 @@
     <div class="row">
         <hr>
         <form class="form-horizontal" method="post">
-            <input type="hidden" name="importe_total" value="
-            {% if pago.importe_pagado %}
-                {{ pago.importe_pagado }}
-            {% else %}
-                {{ importe_total }}
-            {% endif %}">
+            <input type="hidden" name="importe_total" value="{{ importe_total }}">
             <input type="hidden" name="id_pedido" value="{{ id_pedido }}">
             <div class="form-group">
-                <label class="col-sm-5 control-label">Ahora mismo</label>
+                <label class="col-sm-5 control-label">Fecha actual</label>
                 <div class="col-sm-7">
                     {{ ahora_mismo }}
                 </div>
@@ -115,24 +110,18 @@
                     {% endif %}
                 </div>
             </div>
+            {% if pago.nro_comprobante %}
             <div class="form-group">
-                <label class="col-sm-5 control-label">Nº de pago</label>
+                <label class="col-sm-5 control-label">Nº de comprobante</label>
                 <div class="col-sm-7">
-                    #
-                    {% if not pago.id_pago %}
-                        Se generará una vez registres el pago.
-                    {% else %}
-                        {{ pago.id_pago }}
-                    {% endif %}
+                    {{ pago.nro_comprobante }}
                 </div>
             </div>
+            {% endif %}
             <div class="form-group">
                 <div class="col-sm-offset-5 col-sm-7">
-                    <a href="javascript:window.print()" class="btn btn-default" id="imprimir-pedido">
-                        <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
-                    </a>
                     <button type="submit" class="btn btn-primary">
-                        Registrar
+                        Grabar
                     </button>
                 </div>
             </div>

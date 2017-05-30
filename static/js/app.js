@@ -138,6 +138,8 @@ var Pedido = function () {
             this.setResultOptionsEvents();
 
             this.updateTotalAmount();
+
+            this.setSelectClientEvent();
         }
     }, {
         key: 'grabData',
@@ -195,7 +197,7 @@ var Pedido = function () {
                 results_dom = results_dom + result_dom;
             }
 
-            results_dom = results_dom + '\n                <div class="text-center">\n                    <button type="submit" class="btn btn-primary">\n                        Seleccionar cliente\n                    </button>\n                </div>\n            </form>\n        </div>';
+            results_dom = results_dom + '\n                <div class="text-center">\n                    <button type="submit" class="btn btn-primary" id="busqueda-seleccionar-cliente">\n                        Seleccionar cliente\n                    </button>\n                </div>\n            </form>\n        </div>';
 
             selector.find('.modal-body .search_results').html(results_dom);
         }
@@ -417,6 +419,11 @@ var Pedido = function () {
 
             return $(active);
         }
+    }, {
+        key: 'setSelectClientEvent',
+        value: function setSelectClientEvent() {
+            $(document).on('click', this.vanillaSelectors['btn-seleccionar-cliente'], function () {});
+        }
     }]);
 
     return Pedido;
@@ -437,7 +444,8 @@ var pedido = new Pedido({
     'buscar-pedido': '#buscar-pedido',
     'resultado-pedido': '.client-orders .order',
     'registrar-pago': '#registrar-pago',
-    'actualizar-pedido': '#actualizar-pedido'
+    'actualizar-pedido': '#actualizar-pedido',
+    'btn-seleccionar-cliente': '#busqueda-seleccionar-cliente'
 });
 pedido.initialize();
 

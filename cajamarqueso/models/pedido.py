@@ -1,4 +1,5 @@
 from typing import Union
+from decimal import Decimal
 
 from ..abc import Model
 from ..date import date
@@ -70,10 +71,10 @@ class Pedido(Model):
         return await self.db.query('SELECT * FROM t_pago WHERE pedido_id = $1', (id_pedido,), first=True)
 
     async def update(self, data: dict) -> bool:
-        query, values = ('UPDATE t_pedido SET estado = $1 WHERE id_pedido = $2',
-                         'INSERT INTO t_pago (pedido_id, importe_pagado, fecha_realizado) '
-                         'VALUES ($1, $2, $3)'), ((EstadoPedido.PAGADO.value, data['id_pedido']),
-                                                  (data['id_pedido'], data['importe_total'], data['ahora']))
+        query, values = ('UPDATE t_pedido SET estado = $1, importe_pagado = $2 WHERE id_pedido = $3',
+                         'INSERT INTO t_pago (pedido_id, fecha_realizado, nro_comprobante) '
+                         'VALUES ($1, $2, $3)'), ((EstadoPedido.PAGADO.value, data['importe_total'], data['id_pedido']),
+                                                  (data['id_pedido'], data['ahora'], data['nro_comprobante']))
 
         return await self.db.update(query, values)
 
@@ -82,6 +83,13 @@ class Pedido(Model):
                                        'detalle_pedido.producto_id = producto.id_producto WHERE '
                                        'detalle_pedido.pedido_id = $1', (id_pedido,))
         return detalles
+
+    async def get_client_name(self, id_pedido: int) -> str:
+        pedido = await self.get(id_pedido)
+
+        query = 'SELECT nombre_cliente FROM t_cliente WHERE id_cliente = $1'
+
+        return (await self.db.query(query, values=(pedido['cliente_id'],), first=True))['nombre_cliente']
 
     async def create(self, data: dict) -> bool:
         pedido = await self.create_pedido(data)
@@ -107,7 +115,7 @@ class Pedido(Model):
         return await self.db.update(detalles_queries, detalles_values)
 
     async def create_pedido(self, data: dict):
-        pedido_query = 'INSERT INTO t_pedido (cliente_id, fecha_realizado, estado) VALUES ($1, $2, $3)'
+        pedido_query = 'INSERT INTO t_pedido (cliente_id, fecha_realizado, estado, importe_pagado) VALUES ($1, $2, $3, 0.0)'
         pedido_values = (data['id_cliente'], data['ahora'], data['estado'])
 
         await self.db.update((pedido_query,), (pedido_values,))
@@ -116,6 +124,16 @@ class Pedido(Model):
                                     (pedido_values[0], pedido_values[1]), first=True)
 
         return pedido if pedido else False
+
+    async def update_importe_pagado(self, id_pedido: int) -> bool:
+        detalles = await self.get_detalles(id_pedido)
+        monto_total = Decimal(0.0)
+
+        for detalle in detalles:
+            monto_total += detalle['precio'] * detalle['cantidad']
+
+        query = 'UPDATE t_pedido SET importe_pagado = $1 WHERE id_pedido = $2'
+        return await self.db.update((query,), values=((monto_total, id_pedido),))
 
     async def update_detalles(self, id_pedido: int, data: dict, new_data: dict):
         # Listas con las consultas que se realizarán
@@ -164,4 +182,8 @@ class Pedido(Model):
         values = [query[1] for query in queries]
         queries = [query[0] for query in queries]
 
-        return await self.db.update(queries, values=values)
+        update_detalles = await self.db.update(queries, values=values)
+        update_importe_pagado = await self.update_importe_pagado(id_pedido)
+
+        return update_detalles and update_importe_pagado
+

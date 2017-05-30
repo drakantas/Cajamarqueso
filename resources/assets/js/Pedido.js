@@ -33,6 +33,8 @@ class Pedido
         this.setResultOptionsEvents();
 
         this.updateTotalAmount();
+
+        this.setSelectClientEvent();
     }
 
     grabData(selector, input)
@@ -94,7 +96,7 @@ class Pedido
 
         results_dom = `${results_dom}
                 <div class="text-center">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="busqueda-seleccionar-cliente">
                         Seleccionar cliente
                     </button>
                 </div>
@@ -328,6 +330,13 @@ class Pedido
 
         return $(active);
     }
+
+    setSelectClientEvent()
+    {
+        $(document).on('click', this.vanillaSelectors['btn-seleccionar-cliente'], () => {
+
+        });
+    }
 }
 
 
@@ -346,6 +355,7 @@ let pedido = new Pedido({
     'buscar-pedido': '#buscar-pedido',
     'resultado-pedido': '.client-orders .order',
     'registrar-pago': '#registrar-pago',
-    'actualizar-pedido': '#actualizar-pedido'
+    'actualizar-pedido': '#actualizar-pedido',
+    'btn-seleccionar-cliente': '#busqueda-seleccionar-cliente'
 });
 pedido.initialize();
