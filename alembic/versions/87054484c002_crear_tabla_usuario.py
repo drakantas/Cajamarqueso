@@ -1,8 +1,8 @@
-"""crear_tabla_usuarios
+"""crear_tabla_usuario
 
-Revision ID: 9af3d9b1b1b4
-Revises: c64887e2090b
-Create Date: 2017-05-04 03:37:29.923851
+Revision ID: 87054484c002
+Revises: 
+Create Date: 2017-06-02 01:07:34.141465
 
 """
 from alembic import op
@@ -10,14 +10,14 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9af3d9b1b1b4'
-down_revision = 'c64887e2090b'
+revision = '87054484c002'
+down_revision = None
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    op.create_table('usuarios',
+    op.create_table('usuario',
                     sa.Column('id_usuario', sa.Integer, primary_key=True, autoincrement=True),
                     sa.Column('email', sa.String(256), nullable=False),
                     sa.Column('credencial', sa.String(256), nullable=False),
@@ -26,15 +26,6 @@ def upgrade():
                     sa.Column('apellidos', sa.String(64), nullable=False),
                     sa.Column('tipo_usuario', sa.SmallInteger, nullable=False))
 
-    op.create_table('tipos_usuario',
-                    sa.Column('id_tipo_usuario', sa.SmallInteger, primary_key=True, autoincrement=True),
-                    sa.Column('desc_tipo_usuario', sa.String(32), nullable=False))
-
-    # FK de Tipo de usuario
-    op.create_foreign_key('tipo_usuario_fk', 'usuarios', 'tipos_usuario', ['tipo_usuario'], ['id_tipo_usuario'],
-                          ondelete='CASCADE')
-
 
 def downgrade():
-    op.drop_table('usuarios')
-    op.drop_table('tipos_usuario')
+    op.drop_table('usuario')
