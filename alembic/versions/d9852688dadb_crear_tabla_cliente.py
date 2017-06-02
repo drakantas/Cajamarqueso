@@ -19,6 +19,12 @@ depends_on = None
 
 def upgrade():
     def populate_table(table):
+        def generate_id(clients: list) -> int:
+            id_ = randint(10000000, 99999999)
+            if [x for x in clients if x['id_cliente'] == id_]:
+                return generate_id(clients)
+            return id_
+
         clients = list()
         possible_types = (0, 1)
         possible_names = (('Juan Perez', 'Pedro Perez', 'Juanita Espinoza', 'Jorge Sanchez del Rio', 'Miranda Reyes',
@@ -28,6 +34,7 @@ def upgrade():
             for c in range(0, 6):
                 name = possible_names[t][c]
                 client = {
+                    'id_cliente': generate_id(clients),
                     'nombre_cliente': name,
                     'tipo_cliente': t + 1,
                     'email_cliente': name.lower().replace(' ', '_') + '@gmail.com',
@@ -39,7 +46,7 @@ def upgrade():
         op.bulk_insert(table, clients)
 
     table = op.create_table('cliente',
-                            sa.Column('id_cliente', sa.Integer, primary_key=True, autoincrement=True),
+                            sa.Column('id_cliente', sa.Integer, primary_key=True, autoincrement=False),
                             sa.Column('nombre_cliente', sa.String(256), nullable=False),
                             sa.Column('tipo_cliente', sa.SmallInteger, nullable=False),
                             sa.Column('email_cliente', sa.String(256), nullable=True),
