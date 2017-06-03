@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from ..abc import Model
 from ..date import date
-from ..controllers.pedidos import EstadoPedido
+from ..controllers.pedidos import EstadoPedido, EntregaPedido
 
 COD_PEDIDO_FORMAT = 'PED{nro_ped}'
 COD_COMPROBANTE_FORMAT = 'PAG{fecha}{pedido}'
@@ -11,7 +11,7 @@ COD_COMPROBANTE_FORMAT = 'PAG{fecha}{pedido}'
 
 class Pedido(Model):
     async def get_pedidos(self, id_cliente: int, estado_importa: bool = False) -> list:
-        pedidos = await self.db.query('SELECT cod_pedido, cliente_id, fecha_realizado, estado, '
+        pedidos = await self.db.query('SELECT cod_pedido, cliente_id, fecha_realizado, estado, entrega, '
                                       'sum(detalle_pedido.cantidad * (SELECT precio FROM t_producto WHERE '
                                       'id_producto = detalle_pedido.producto_id)) as importe_total FROM t_pedido '
                                       'LEFT JOIN t_detalle_pedido ON detalle_pedido.pedido_cod = pedido.cod_pedido '
@@ -46,7 +46,8 @@ class Pedido(Model):
 
         pago = await self.get_payment(pedido['cod_pedido'])
 
-        pedido['fecha_realizado'] = await date().parse(pedido['fecha_realizado'])
+        pedido['up_fecha_realizado'] = pedido['fecha_realizado']
+        pedido['fecha_realizado'] = await date().parse(pedido['up_fecha_realizado'])
 
         pedido.update({
             'cliente': {k: v for k, v in cliente.items()},
@@ -101,7 +102,7 @@ class Pedido(Model):
 
         return (await self.db.query(query, values=(pedido['cliente_id'],), first=True))['nombre_cliente']
 
-    async def create(self, data: dict) -> bool:
+    async def create(self, data: dict) -> Union[bool, str]:
         pedido = await self.create_pedido(data)
 
         if not pedido:
@@ -130,7 +131,7 @@ class Pedido(Model):
                 'ahora': data['ahora']
             }, pagado=True)
 
-        return True
+        return pedido['cod_pedido']
 
     async def create_pedido(self, data: dict):
         ultimo_pedido = await self.get_last_pedido()
@@ -143,7 +144,7 @@ class Pedido(Model):
 
         pedido_query = 'INSERT INTO t_pedido (cod_pedido, cliente_id, estado, entrega, fecha_realizado, subtotal, ' \
                        'igv, importe_pagado) VALUES ($1, $2, $3, $4, $5, 0.0, 0.0, 0.0)'
-        pedido_values = (cod_pedido, data['id_cliente'], data['estado'], 1, data['ahora'])
+        pedido_values = (cod_pedido, data['id_cliente'], data['estado'], data['entrega'], data['ahora'])
 
         new_pedido = await self.db.update((pedido_query,), values=(pedido_values,))
 
@@ -164,6 +165,30 @@ class Pedido(Model):
 
         query = 'UPDATE t_pedido SET subtotal = $1, igv = $2, importe_pagado = $3 WHERE cod_pedido = $4'
         return await self.db.update((query,), values=((subtotal, igv, monto_total, cod_pedido),))
+
+    async def update_pedido(self, cod_pedido: str, estado_pedido: int, entrega_pedido: int) -> bool:
+        query = 'UPDATE t_pedido SET estado = $1, entrega = $2 WHERE cod_pedido = $3'
+        values = (estado_pedido, entrega_pedido, cod_pedido)
+
+        update_pedido = await self.db.update((query,), values=(values,))
+
+        if estado_pedido == EstadoPedido.NO_PAGADO.value:
+            queries = ('UPDATE t_pedido SET subtotal = 0.0, igv = 0.0, importe_pagado = 0.0 WHERE cod_pedido = $1',
+                       'DELETE FROM t_pago WHERE pedido_cod = $1')
+            values = ((cod_pedido,), (cod_pedido,))
+
+            update_ingresos = await self.db.update(queries, values=values)
+
+            return update_pedido == update_ingresos
+        else:
+            pago = await self.get_payment(cod_pedido)
+            update_pago = True
+
+            if not pago:
+                update_pago = await self.update({'cod_pedido': cod_pedido, 'ahora': (await date().now())}, pagado=True)
+
+            return update_pedido == update_pago
+
 
     async def update_detalles(self, cod_pedido: str, data: dict, new_data: dict):
         # Listas con las consultas que se realizarán

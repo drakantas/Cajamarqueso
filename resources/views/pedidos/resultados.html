@@ -32,32 +32,50 @@
         </div>
         <hr>
         <div class="col-md-12 text-center orders-header">
-            <div class="col-sm-3">
+            <div class="col-sm-2">
+                Codígo
+            </div>
+            <div class="col-sm-2">
                 Fecha de registro
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-2">
                 Estado
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-2">
+                Estado de entrega
+            </div>
+            <div class="col-sm-2">
                 Monto a pagar (En soles)
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-2">
                 Productos registrados
             </div>
         </div>
         {% for pedido in pedidos %}
             <div class="col-md-12 order" data-pedido-id="{{ pedido.cod_pedido }}">
-                <div class="col-sm-3">
+                <div class="col-sm-2">
+                    {{ pedido.cod_pedido }}
+                </div>
+                <div class="col-sm-2">
                     {{ pedido.fecha_realizado }}
                 </div>
-                <div class="col-sm-3">
+                <div class="col-sm-2">
                     {% if pedido.estado == 1 %}
                         Pagado
                     {% elif pedido.estado == 2 %}
                         No pagado
                     {% endif %}
                  </div>
-                <div class="col-sm-3">
+                <div class="col-sm-2">
+                    {% if pedido.entrega == 1 %}
+                        Pendiente
+                    {% elif pedido.entrega == 2 %}
+                        Entregado
+                    {% elif pedido.entrega == 3 %}
+                        Cancelado
+                    {% endif %}
+                </div>
+                <div class="col-sm-2">
                     S/.
                     {% if pedido.importe_total %}
                         {{ pedido.importe_total }}
@@ -65,7 +83,7 @@
                         0.00
                     {% endif %}
                 </div>
-                <div class="col-sm-3">
+                <div class="col-sm-2">
                     {{ pedido.detalles|count }}
                 </div>
             </div>

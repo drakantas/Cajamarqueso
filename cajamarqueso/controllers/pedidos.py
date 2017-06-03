@@ -1,8 +1,8 @@
 import re
 from enum import Enum
 from typing import Union
-from decimal import Decimal, InvalidOperation
-from aiohttp.web import HTTPNotFound
+from decimal import Decimal
+from aiohttp.web import HTTPNotFound, HTTPFound
 from aiohttp_jinja2 import template
 
 from ..abc import Controller
@@ -23,6 +23,36 @@ class EntregaPedido(Enum):
     PENDIENTE = 1
     ENTREGADO = 2
     CANCELADO = 3
+
+
+def validar_estado(estado: str) -> Union[str, int]:
+    try:
+        estado_pedido = int(estado)
+    except ValueError:
+        return 'El estado que ha seleccionado no es válido.'
+
+    if estado_pedido not in (e.value for e in EstadoPedido):
+        return 'El estado de pedido brindado es incorrecto. Por favor, inténtelo de nuevo.'
+
+    return estado_pedido
+
+
+def validar_estado_entrega(entrega: str, validar_completo: bool = False) -> Union[str, int]:
+    msg_error_invalido = 'El estado de entrega brindado es incorrecto. Por favor, inténtelo de nuevo.'
+
+    try:
+        estado_entrega = int(entrega)
+    except ValueError:
+        return 'El estado de entrega seleccionado no es válido'
+
+    if not validar_completo:
+        if estado_entrega not in (1, 2):
+            return msg_error_invalido
+    else:
+        if estado_entrega not in (e.value for e in EntregaPedido):
+            return msg_error_invalido
+
+    return estado_entrega
 
 
 class GenerarPedido(Controller):
@@ -49,13 +79,20 @@ class GenerarPedido(Controller):
 
         post_data = await self.validate(data)
 
+        estado_pedido = post_data['estado']
+
         if isinstance(post_data, str):
             alert = {'error': post_data}
         else:
             post_data = await self.create(post_data)
 
             if post_data:
-                alert = {'success': 'Se ha generado el pedido exitosamente.'}
+                alert = {'success': 'Se ha generado el pedido exitosamente con el siguiente código: '
+                                    '<strong>{cod}</strong>.'.format(cod=post_data)}
+
+                if estado_pedido == EstadoPedido.PAGADO.value:
+                    return HTTPFound('/pedido/pagado/{cod}'.format(cod=post_data))
+
             else:
                 alert = {'error': 'Algo ha sucedido, no se pudo generar el pedido. Por favor, inténtelo más tarde.'}
 
@@ -65,6 +102,26 @@ class GenerarPedido(Controller):
             'productos': await self.get_productos(),
             'ahora': await date().formatted_now()
         }
+
+    @template('pedidos/registrar_pago.html')
+    async def after_registration(self, request):
+        cod_pedido = request.match_info['cod_pedido']
+
+        pedido = await self.app.mvc.models['pedido'].get(cod_pedido)
+
+        if not pedido:
+            raise HTTPNotFound
+        elif pedido['estado'] != EstadoPedido.PAGADO.value:
+            raise HTTPNotFound
+        elif ((await date().now()) - pedido['up_fecha_realizado']).total_seconds() > 15:
+            raise HTTPNotFound
+
+        pedido = {k: v for k, v in pedido.items()}
+
+        alert = {'success': 'Se ha generado el pedido exitosamente con el siguiente código: '
+                            '<strong>{cod}</strong>.'.format(cod=cod_pedido)}
+
+        return {**pedido, **alert, 'despues_generar': True, 'ahora_mismo': await date().formatted_now()}
 
     async def validate(self, data: dict) -> Union[dict, str]:
         try:
@@ -101,13 +158,13 @@ class GenerarPedido(Controller):
                          'inténtelo de nuevo.'
                 return alerta.format(nombre=producto['nombre_producto'], stock=producto['stock'], cant=v)
 
-        try:
-            estado_pedido = int(data['estado_pedido'])
-        except ValueError:
-            return 'El estado que ha seleccionado no es válido.'
+        estado_pedido = validar_estado(data['estado_pedido'])
+        entrega_pedido = validar_estado_entrega(data['entrega_pedido'])
 
-        if estado_pedido not in (e.value for e in EstadoPedido):
-            return 'El estado de pedido brindado es incorrecto. Por favor, inténtelo de nuevo.'
+        if isinstance(estado_pedido, str):
+            return estado_pedido
+        elif isinstance(entrega_pedido, str):
+            return entrega_pedido
 
         fecha_actual = await date().now()
 
@@ -115,6 +172,7 @@ class GenerarPedido(Controller):
             'id_cliente': id_cliente,
             'productos': productos,
             'estado': estado_pedido,
+            'entrega': entrega_pedido,
             'ahora': fecha_actual
         }
 
@@ -233,14 +291,15 @@ class ActualizarPedido(Controller):
 
         detalles = {int(k[9:]): v for k, v in data.items() if re.fullmatch(PRODUCT_KEY_PATTERN, k)}
 
-        id_pedido = int(request.match_info['pedido_id'])
-        pedido = await self.app.mvc.models['pedido'].get(id_pedido)
-        _detalles = (await self.app.mvc.models['pedido'].get(id_pedido))['detalles']
+        cod_pedido = request.match_info['cod_pedido']
+        pedido = await self.app.mvc.models['pedido'].get(cod_pedido)
+        _detalles = (await self.app.mvc.models['pedido'].get(cod_pedido))['detalles']
 
         if not pedido:
             raise HTTPNotFound
 
-        validate = await self.validate(detalles, {_d['producto_id']: _d['cantidad'] for _d in _detalles})
+        validate = await self.validate(detalles, {_d['producto_id']: _d['cantidad'] for _d in _detalles},
+                                       data['estado_pedido'], data['entrega_pedido'])
 
         alert = {}
 
@@ -250,20 +309,23 @@ class ActualizarPedido(Controller):
 
             detalles = {k: int(v) for k, v in detalles.items()}
 
-            result = await self.update(id_pedido, _detalles, detalles)
+            result = await self.update(cod_pedido, _detalles, detalles, data['estado_pedido'], data['entrega_pedido'])
             if result:
                 alert = {'success': 'Se actualizó el pedido exitosamente.'}
             else:
                 alert = {'error': 'No se pudo actualizar el pedido, por favor inténtelo más tarde.'}
 
         # Actualizar pedido con nuevos detalles
-        pedido = await self.app.mvc.models['pedido'].get(id_pedido)
+        pedido = await self.app.mvc.models['pedido'].get(cod_pedido)
 
         return {**pedido,
                 **alert,
                 'productos': await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_productos')()}
 
-    async def validate(self, data: dict, current_data: dict) -> Union[str, bool]:
+    async def validate(self, data: dict, current_data: dict, estado: str, estado_entrega: str) -> Union[str, bool]:
+        if not data:
+            return 'El pedido debe tener por lo menos un producto. Por favor, inténtalo de nuevo.'
+
         for producto_id, cantidad in data.items():
             try:
                 cantidad = int(cantidad)
@@ -280,12 +342,26 @@ class ActualizarPedido(Controller):
                     return 'La cantidad de productos ingresada no puede ser mayor al stock disponible y los cantidad ' \
                            'de productos que están registrados en este momento.'
 
+        estado_pedido = validar_estado(estado)
+        entrega_pedido = validar_estado_entrega(estado_entrega, validar_completo=True)
+
+        if isinstance(estado_pedido, str):
+            return estado_pedido
+        elif isinstance(entrega_pedido, str):
+            return entrega_pedido
+
         return True
 
-    async def update(self, id_pedido: int, data: dict, new_data: dict) -> bool:
+    async def update(self, cod_pedido: str, data: dict, new_data: dict, estado_pedido: str,
+                     entrega_pedido: str) -> bool:
         pedido_model = self.app.mvc.models['pedido']
+        estado_pedido = int(estado_pedido)
+        entrega_pedido = int(entrega_pedido)
 
-        return await pedido_model.update_detalles(id_pedido, data, new_data)
+        update_detalles = await pedido_model.update_detalles(cod_pedido, data, new_data)
+        update_pedido = await pedido_model.update_pedido(cod_pedido, estado_pedido, entrega_pedido)
+
+        return update_pedido == update_detalles
 
 
 class BuscarPedido(Controller):

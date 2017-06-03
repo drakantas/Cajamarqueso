@@ -84,9 +84,11 @@
                     {% if not pago.items() %}
                         <div class="alert alert-info">No se ha registrado ningún pago por este pedido.</div>
                     {% else %}
-                        <p><strong>Nº de comprobante</strong> {{ pago.nro_comprobante }}</p>
+                        <p><strong>Cod. de comprobante</strong> {{ pago.cod_comprobante }}</p>
                         <p><strong>Fecha realizado</strong> {{ pago.fecha_realizado }}</p>
                         <p><strong>Importe pagado (S/.)</strong> {{ importe_pagado }}</p>
+                        <p><strong>IGV 18% (S/.)</strong> {{ igv }}</p>
+                        <p><strong>Subtotal (S/.)</strong> {{ subtotal }}</p>
                     {% endif%}
                 {% endif %}
             </div>

@@ -14,6 +14,9 @@ def setup_routes(router: Router):
     router.add_resource(r'/pedido/registrar-pago/{cod_pedido:' + COD_PEDIDO_PATTERN + '}')\
           .add_route('POST', getattr(router.controllers['pedidos.RegistrarPago'], 'post'))
 
+    router.add_resource(r'/pedido/pagado/{cod_pedido:' + COD_PEDIDO_PATTERN + '}')\
+          .add_route('GET', getattr(router.controllers['pedidos.GenerarPedido'], 'after_registration'))
+
     router.add_resource(r'/pedido/actualizar/{cod_pedido:' + COD_PEDIDO_PATTERN + '}') \
           .add_route('GET', getattr(router.controllers['pedidos.ActualizarPedido'], 'show'))
     router.add_resource(r'/pedido/actualizar/{cod_pedido:' + COD_PEDIDO_PATTERN + '}') \
