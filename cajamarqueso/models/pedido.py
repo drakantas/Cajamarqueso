@@ -20,8 +20,6 @@ class Pedido(Model):
         results = list()
 
         for pedido in pedidos:
-            result = dict()
-
             if estado_importa:
                 if pedido['estado'] == 1:
                     continue
@@ -52,7 +50,8 @@ class Pedido(Model):
 
         pedido.update({
             'cliente': {k: v for k, v in cliente.items()},
-            'detalles': [{k: v for k, v in detalle.items()} for detalle in (await self.get_detalles(pedido['cod_pedido']))],
+            'detalles': [{k: v for k, v in detalle.items()}
+                         for detalle in (await self.get_detalles(pedido['cod_pedido']))],
             'pago': {k: v for k, v in pago.items()} if pago else {}
         })
 
@@ -74,7 +73,6 @@ class Pedido(Model):
         return await self.db.query('SELECT * FROM t_pago WHERE pedido_cod = $1', (cod_pedido,), first=True)
 
     async def update(self, data: dict, pagado: bool = False) -> bool:
-        cliente = (await self.get_client_name(data['cod_pedido']))[:3].upper()
         fecha = (await date().get_code_format(data['ahora']))
         cod_comprobante = COD_COMPROBANTE_FORMAT.format(fecha=fecha, pedido=data['cod_pedido'][3:])
 
@@ -156,7 +154,6 @@ class Pedido(Model):
     async def update_importe_pagado(self, cod_pedido: str) -> bool:
         detalles = await self.get_detalles(cod_pedido)
         monto_total = Decimal(0.0)
-        igv = Decimal(0.0)
 
         for detalle in detalles:
             monto_total += detalle['precio'] * detalle['cantidad']
@@ -223,4 +220,3 @@ class Pedido(Model):
     async def get_last_pedido(self):
         query = 'SELECT * FROM t_pedido ORDER BY pedido.fecha_realizado DESC'
         return await self.db.query(query, first=True)
-
