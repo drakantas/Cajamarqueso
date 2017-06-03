@@ -280,7 +280,9 @@ var Pedido = function () {
         value: function updateTotalAmount() {
             var productos = this.selectors['carrito'].find('.product');
 
-            var monto_total = 0.0;
+            var monto_total = 0.0,
+                subtotal = 0.0,
+                igv = 0.0;
 
             for (var i = 0; i < productos.length; i++) {
                 producto = $(productos[i]);
@@ -302,6 +304,11 @@ var Pedido = function () {
                 monto_total += precio_producto * cantidad_producto;
             }
 
+            igv = monto_total * 0.18;
+            subtotal = monto_total - igv;
+
+            this.selectors['igv'].html('' + igv.toFixed(2));
+            this.selectors['subtotal'].html('' + subtotal.toFixed(2));
             this.selectors['monto-total'].html('' + monto_total.toFixed(2));
         }
     }, {
@@ -400,13 +407,7 @@ var Pedido = function () {
                 return null;
             }
 
-            var _id = parseInt(selected.data('pedido-id'));
-
-            if (isNaN(_id)) {
-                return null;
-            }
-
-            return _id;
+            return selected.data('pedido-id');
         }
     }, {
         key: 'getSelectedResult',
@@ -441,6 +442,8 @@ var pedido = new Pedido({
     'agregar-producto': '#agregar-producto',
     'carrito': '.selected-products',
     'monto-total': '.monto_total',
+    'subtotal': '.subtotal',
+    'igv': '.igv',
     'buscar-pedido': '#buscar-pedido',
     'resultado-pedido': '.client-orders .order',
     'registrar-pago': '#registrar-pago',

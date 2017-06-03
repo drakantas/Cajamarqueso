@@ -11,11 +11,18 @@ from ..date import date
 Controllers = ('GenerarPedido', 'RegistrarPago', 'BuscarPedido', 'ActualizarPedido')
 
 PRODUCT_KEY_PATTERN = r'producto_[1-9][0-9]*'
+COD_PEDIDO_PATTERN = r'PED0*(?:(?<=0{2})[1-9]{1}|(?<=0{1})[1-9]{2}|(?<=0{0})[1-9]{3,})'
 
 
 class EstadoPedido(Enum):
     PAGADO = 1
     NO_PAGADO = 2
+
+
+class EntregaPedido(Enum):
+    PENDIENTE = 1
+    ENTREGADO = 2
+    CANCELADO = 3
 
 
 class GenerarPedido(Controller):
@@ -73,6 +80,9 @@ class GenerarPedido(Controller):
             return 'El cliente no existe en nuestra base de datos. Por favor, inténtelo de nuevo con otro cliente.'
 
         productos = {int(k[9:]): v for k, v in data.items() if re.fullmatch(PRODUCT_KEY_PATTERN, k)}
+
+        if not productos:
+            return 'Debes de agregar por lo menos 1 producto al pedido. Por favor, inténtalo de nuevo.'
 
         for k, v in productos.items():
             try:
@@ -140,10 +150,14 @@ class GenerarPedido(Controller):
 class RegistrarPago(Controller):
     @template('pedidos/registrar_pago.html')
     async def show(self, request):
-        id_pedido = int(request.match_info['pedido_id'])
+        cod_pedido = request.match_info['cod_pedido']
 
-        pedido = await self.app.mvc.models['pedido'].get(id_pedido)
-        pago = await self.app.mvc.models['pedido'].get_payment(id_pedido)
+        pedido = {k: v for k, v in (await self.app.mvc.models['pedido'].get(cod_pedido)).items()}
+        pedido['igv'] = pedido['importe_total'] * Decimal(0.18)
+        pedido['subtotal'] = round(pedido['importe_total'] - pedido['igv'], 2)
+        pedido['igv'] = round(pedido['igv'], 2)
+
+        pago = await self.app.mvc.models['pedido'].get_payment(cod_pedido)
 
         if (not pedido) or pago:
             raise HTTPNotFound
@@ -154,9 +168,10 @@ class RegistrarPago(Controller):
     async def post(self, request):
         data = await request.post()
 
+        cod_pedido = data['cod_pedido']
+
         validated_data = await self.validate({
-            'id_pedido': data['id_pedido'],
-            'importe_total': data['importe_total']
+            'cod_pedido': cod_pedido
         })
 
         if isinstance(validated_data, str):
@@ -169,8 +184,7 @@ class RegistrarPago(Controller):
             else:
                 alert = {'error': 'No se pudo registrar el pago.'}
 
-        id_pedido = int(request.match_info['pedido_id'])
-        pedido = await self.app.mvc.models['pedido'].get(id_pedido)
+        pedido = await self.app.mvc.models['pedido'].get(cod_pedido)
 
         if not pedido:
             raise HTTPNotFound
@@ -178,34 +192,21 @@ class RegistrarPago(Controller):
         return {**pedido, **alert, 'ahora_mismo': await date().formatted_now()}
 
     async def validate(self, data: dict):
-        try:
-            id_pedido = int(data['id_pedido'])
-        except ValueError:
-            return 'La Id de pedido deberá de ser un número entero.'
-        except KeyError:
-            return 'Se debe de brindar una Id de pedido para registrar el pago.'
+        cod_pedido = data['cod_pedido']
 
-        pago = await self.app.mvc.models['pedido'].get_payment(id_pedido)
+        if not re.fullmatch(COD_PEDIDO_PATTERN, cod_pedido):
+            return 'El código de pedido brindado es incorrecto.'
+
+        pago = await self.app.mvc.models['pedido'].get_payment(cod_pedido)
 
         if pago:
             return 'Ya existe un pago registrado para este pedido.'
 
-        try:
-            importe_total = Decimal(data['importe_total'])
-        except InvalidOperation:
-            return 'El importe total deberá de ser un número entero o decimal.'
-        except KeyError:
-            return 'El importe total debe de ser brindado.'
-
         ahora = await date().now()
-        nombre_cliente = await self.app.mvc.models['pedido'].get_client_name(id_pedido)
-        nro_comprobante = nombre_cliente[:3].upper() + (await date().get_code_format(ahora)) + data['id_pedido'].zfill(4)
 
         return {
-            'id_pedido': id_pedido,
-            'importe_total': importe_total,
-            'ahora': ahora,
-            'nro_comprobante': nro_comprobante
+            'cod_pedido': cod_pedido,
+            'ahora': ahora
         }
 
     async def update(self, data: dict):
@@ -217,8 +218,8 @@ class RegistrarPago(Controller):
 class ActualizarPedido(Controller):
     @template('pedidos/generar.html')
     async def show(self, request):
-        id_pedido = int(request.match_info['pedido_id'])
-        pedido = await self.app.mvc.models['pedido'].get(id_pedido)
+        cod_pedido = request.match_info['cod_pedido']
+        pedido = await self.app.mvc.models['pedido'].get(cod_pedido)
 
         if not pedido:
             raise HTTPNotFound
@@ -285,7 +286,6 @@ class ActualizarPedido(Controller):
         pedido_model = self.app.mvc.models['pedido']
 
         return await pedido_model.update_detalles(id_pedido, data, new_data)
-
 
 
 class BuscarPedido(Controller):

@@ -1,15 +1,21 @@
 {% extends "layouts/app.html" %}
 
-{% block title %}Generar pedido{% endblock %}
+{% block title %}
+    {% if cod_pedido is defined %}
+        Actualizar pedido
+    {% else %}
+        Generar Pedido
+    {% endif %}
+{% endblock %}
 
 {% block nuevo_pedido %}
-    {% if id_pedido is not defined %}
+    {% if cod_pedido is not defined %}
         active
     {% endif %}
 {% endblock %}
 
 {% block actualizar_pedido %}
-    {% if id_pedido is defined %}
+    {% if cod_pedido is defined %}
         active
     {% endif %}
 {% endblock %}
@@ -39,22 +45,34 @@
     {% else %}
         <div class="row">
             <h2>
-                {% if id_pedido is defined %}
+                {% if cod_pedido is defined %}
                     Actualizar pedido
                 {% else %}
-                    Generar nuevo pedido
+                    Nuevo pedido
                 {% endif %}
             </h2>
             <hr>
             <div class="col-md-6">
                 <h4>Datos de cliente</h4>
-                <p><strong>DNI </strong> {{ cliente.id_cliente }}</p>
-                <p><strong>Nombre </strong> {{ cliente.nombre_cliente }}</p>
+                <p><strong>
+                    {% if cliente.tipo_cliente == 1 %}
+                        DNI
+                    {% elif cliente.tipo_cliente == 2 %}
+                        RUC
+                    {% endif %}
+                </strong> {{ cliente.id_cliente }}</p>
+                <p><strong>
+                    {% if cliente.tipo_cliente == 1 %}
+                        Nombres y Apellidos
+                    {% elif cliente.tipo_cliente == 2 %}
+                        Razón Social
+                    {% endif %}
+                </strong> {{ cliente.nombre_cliente }}</p>
                 <p><strong>Teléfono </strong> {{ cliente.telefono_cliente }}</p>
                 <p><strong>Email </strong> {{ cliente.email_cliente }}</p>
             </div>
             <div class="col-md-6">
-                {% if id_pedido is not defined %}
+                {% if cod_pedido is not defined %}
                     <div class="text-right search-again">
                         <p><em>¿Este no es el cliente que querías?</em></p>
                         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#buscar-cliente">
@@ -77,8 +95,8 @@
             <hr>
         </div>
     {% endif %}
-{% if id_pedido is defined %}
-    <form class="form-horizontal" method="post" action="/pedido/actualizar/{{ id_pedido }}">
+{% if cod_pedido is defined %}
+    <form class="form-horizontal" method="post" action="/pedido/actualizar/{{ cod_pedido }}">
 {% else %}
     <form class="form-horizontal" method="post" action="/pedido/registrar-nuevo">
 {% endif %}
@@ -88,7 +106,7 @@
         <div class="row">
             <div class="col-md-7 products-list" id="products-list">
                 {% for producto in productos %}
-                    {% if id_pedido is defined %}
+                    {% if cod_pedido is defined %}
                         <div class="col-md-4 product">
                             <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto" value="{{ producto.id_producto }}">
                             <label for="selector_item_{{ producto.id_producto }}" class="text-center">
@@ -98,7 +116,7 @@
                                 S/. <span class="product_price">{{ producto.precio }}</span>
                             </label>
                         </div>
-                    {% elif id_pedido is not defined and producto.stock > 0 %}
+                    {% elif cod_pedido is not defined and producto.stock > 0 %}
                         <div class="col-md-4 product">
                             <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto" value="{{ producto.id_producto }}">
                             <label for="selector_item_{{ producto.id_producto }}" class="text-center">
@@ -145,14 +163,14 @@
                 <div class="form-group">
                     <label class="col-sm-5 control-label">
                         Fecha
-                        {% if id_pedido is defined %}
+                        {% if cod_pedido is defined %}
                             de registro
                         {% else %}
                             actual
                         {% endif %}
                     </label>
                     <div class="col-sm-7" style="padding-top:6px;padding-bottom:6px;line-height:1.42857143;">
-                        {% if id_pedido is defined %}
+                        {% if cod_pedido is defined %}
                             {{ fecha_realizado }}
                         {% else %}
                             {{ ahora }}
@@ -162,8 +180,8 @@
                 <div class="form-group">
                     <label for="estado_pedido" class="col-sm-5 control-label">Estado</label>
                     <div class="col-sm-7">
-                        <select class="form-control" id="estado_pedido" name="estado_pedido" {% if id_pedido is defined %}disabled{% endif %}>
-                            {% if id_pedido is defined %}
+                        <select class="form-control" id="estado_pedido" name="estado_pedido">
+                            {% if cod_pedido is defined %}
                                 <option value="1" {% if estado == 1 %}selected{% endif %}>Pagado</option>
                                 <option value="2" {% if estado == 2 %}selected{% endif %}>No pagado</option>
                             {% else %}
@@ -173,14 +191,45 @@
                         </select>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label for="entrega_pedido" class="col-sm-5 control-label">Entrega</label>
+                    <div class="col-sm-7">
+                        <select class="form-control" id="entrega_pedido" name="entrega_pedido">
+                            {% if cod_pedido is defined %}
+                                <option value="1" {% if entrega == 1 %}selected{% endif %}>Pendiente</option>
+                                <option value="2" {% if entrega == 2 %}selected{% endif %}>Entregado</option>
+                                <option value="3" {% if entrega == 3 %}selected{% endif %}>Cancelado</option>
+                            {% else %}
+                                <option value="1" selected>Pendiente</option>
+                                <option value="2">Entregado</option>
+                            {%endif %}
+                        </select>
+                    </div>
+                </div>
             </div>
             <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-5 control-label">
+                        Subtotal
+                    </label>
+                    <div class="col-sm-7" style="padding-top:6px;padding-bottom:6px;line-height:1.42857143;">
+                        S/ <span class="subtotal">0.0</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-5 control-label">
+                        IGV (18%)
+                    </label>
+                    <div class="col-sm-7" style="padding-top:6px;padding-bottom:6px;line-height:1.42857143;">
+                        S/ <span class="igv">0.0</span>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label class="col-sm-5 control-label">
                         Monto total
                     </label>
                     <div class="col-sm-7" style="padding-top:6px;padding-bottom:6px;line-height:1.42857143;">
-                        S/. <span class="monto_total">0.00</span>
+                        S/. <span class="monto_total">0.0</span>
                     </div>
                 </div>
             </div>
@@ -189,7 +238,7 @@
             <hr>
         </div>
         <div class="row text-right">
-            {% if id_pedido is defined %}
+            {% if cod_pedido is defined %}
                 <a href="javascript:window.print()" class="btn btn-default" id="imprimir-pedido">
                     <span class="glyphicon glyphicon-print" aria-hidden="true"></span>
                 </a>
@@ -197,7 +246,7 @@
             <a href="/" class="btn btn-default" id="cancelar-accion">
                 Cancelar
             </a>
-            {% if id_pedido is defined %}
+            {% if cod_pedido is defined %}
                 <button type="submit" class="btn btn-primary">
                     Guardar
                 </button>

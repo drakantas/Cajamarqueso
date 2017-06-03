@@ -28,8 +28,8 @@ def upgrade():
         str_resources_path = str(resources_path.resolve())
         available_images = [str(resources_path.joinpath(i).resolve()) for i in listdir(str_resources_path)
                             if isfile(str(resources_path.joinpath(i).resolve()))]
-        possible_names = ('Queso Suizo', 'Queso Cheddar', 'Queso Mozzarella', 'Queso Fresco', 'Queso Añejado',
-                          'Queso Cajamarquino')
+        possible_names = ('Queso Suizo', 'Queso Cheddar', 'Queso Edam', 'Queso Fresco', 'Queso Añejado',
+                          'Queso Gouda')
         possible_varieties = ('1kg', '2kg', '3kg', '4kg', '5kg', '6kg')
         possible_prices = (27.50, 14.50, 29.70, 38.90, 40.50)
         possible_packages = ('Plástico', 'Cartón', 'Vidrio')

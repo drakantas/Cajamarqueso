@@ -23,6 +23,8 @@ def upgrade():
                     sa.Column('estado', sa.SmallInteger, nullable=False),
                     sa.Column('entrega', sa.SmallInteger, nullable=False),
                     sa.Column('fecha_realizado', sa.DateTime, nullable=False),
+                    sa.Column('subtotal', sa.Numeric, nullable=False),
+                    sa.Column('igv', sa.Numeric, nullable=False),
                     sa.Column('importe_pagado', sa.Numeric, nullable=False))
 
     op.create_foreign_key('cliente_id_fk', 'pedido', 'cliente', ['cliente_id'], ['id_cliente'], ondelete='CASCADE')

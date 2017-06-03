@@ -27,24 +27,28 @@
             <hr>
             <p>
                 <strong>Tipo de cliente</strong>
-                {% if cliente.tipo_cliente_id == 1 %}
+                {% if cliente.tipo_cliente == 1 %}
                     Persona
-                {% elif cliente.tipo_cliente_id == 2 %}
+                {% elif cliente.tipo_cliente == 2 %}
                     Empresa
                 {% endif %}
             </p>
             <p>
                 <strong>
-                {% if cliente.tipo_cliente_id == 1 %}
+                {% if cliente.tipo_cliente == 1 %}
                     DNI
-                {% elif cliente.tipo_cliente_id == 2 %}
+                {% elif cliente.tipo_cliente == 2 %}
                     RUC
                 {% endif %}
                 </strong>
                 {{ cliente.id_cliente }}
             </p>
             <p>
-                <strong>Nombre(s)</strong>
+                {% if cliente.tipo_cliente == 1 %}
+                    <strong>Nombres y Apellidos</strong>
+                {% elif cliente.tipo_cliente == 2 %}
+                    <strong>Razón social</strong>
+                {% endif %}
                 {{ cliente.nombre_cliente }}
             </p>
             <p>
@@ -91,8 +95,15 @@
     <div class="row">
         <hr>
         <form class="form-horizontal" method="post">
-            <input type="hidden" name="importe_total" value="{{ importe_total }}">
-            <input type="hidden" name="id_pedido" value="{{ id_pedido }}">
+            <input type="hidden" name="cod_pedido" value="{{ cod_pedido }}">
+            {% if pago.cod_comprobante %}
+            <div class="form-group">
+                <label class="col-sm-5 control-label">Cod. de comprobante</label>
+                <div class="col-sm-7">
+                    {{ pago.cod_comprobante }}
+                </div>
+            </div>
+            {% endif %}
             <div class="form-group">
                 <label class="col-sm-5 control-label">Fecha actual</label>
                 <div class="col-sm-7">
@@ -100,24 +111,23 @@
                 </div>
             </div>
             <div class="form-group">
+                <label class="col-sm-5 control-label">Subtotal</label>
+                <div class="col-sm-7">
+                    S/. {{ subtotal }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-5 control-label">IGV</label>
+                <div class="col-sm-7">
+                    S/. {{ igv }}
+                </div>
+            </div>
+            <div class="form-group">
                 <label class="col-sm-5 control-label">Importe total</label>
                 <div class="col-sm-7">
-                    S/.
-                    {% if pago.importe_pagado %}
-                        {{ pago.importe_pagado }}
-                    {% else %}
-                        {{ importe_total }}
-                    {% endif %}
+                    S/. {{ importe_total }}
                 </div>
             </div>
-            {% if pago.nro_comprobante %}
-            <div class="form-group">
-                <label class="col-sm-5 control-label">Nº de comprobante</label>
-                <div class="col-sm-7">
-                    {{ pago.nro_comprobante }}
-                </div>
-            </div>
-            {% endif %}
             <div class="form-group">
                 <div class="col-sm-offset-5 col-sm-7">
                     <button type="submit" class="btn btn-primary">

@@ -16,7 +16,7 @@ class Cliente(Model):
             search_type = 'lower(cliente.nombre_cliente)'
             operator = 'LIKE'
             search_query = search_query.replace('-', ' ')
-            search_query = '%{}%'.format(search_query.lower())
+            search_query = '%{} %'.format(search_query.lower())
 
         query = 'SELECT * FROM t_cliente WHERE {search_type} {operator} $1'
         query = query.format(search_type=search_type, operator=operator)
