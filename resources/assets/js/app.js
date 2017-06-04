@@ -12,3 +12,5 @@ require('bootstrap-sass');
  * Cargar módulos JS de Cajamarqueso.
  */
 require('./Pedido');
+
+require('./Mantener');

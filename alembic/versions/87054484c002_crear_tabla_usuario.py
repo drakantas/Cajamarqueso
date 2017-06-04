@@ -18,8 +18,8 @@ depends_on = None
 
 def upgrade():
     op.create_table('usuario',
-                    sa.Column('id_usuario', sa.Integer, primary_key=True, autoincrement=True),
-                    sa.Column('email', sa.String(256), nullable=False),
+                    sa.Column('dni', sa.Integer, primary_key=True, autoincrement=False),
+                    sa.Column('email', sa.String(128), unique=True, nullable=False),
                     sa.Column('credencial', sa.String(256), nullable=False),
                     sa.Column('fecha_registro', sa.DateTime, nullable=False),
                     sa.Column('nombres', sa.String(64), nullable=False),

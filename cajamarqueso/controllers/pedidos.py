@@ -7,6 +7,7 @@ from aiohttp_jinja2 import template
 
 from ..abc import Controller
 from ..date import date
+from ..decorators import get_usuario, usuario_debe_estar_conectado, solo_admin, admin_y_encargado_ventas
 
 Controllers = ('GenerarPedido', 'RegistrarPago', 'BuscarPedido', 'ActualizarPedido')
 
@@ -57,33 +58,40 @@ def validar_estado_entrega(entrega: str, validar_completo: bool = False) -> Unio
 
 class GenerarPedido(Controller):
     @template('pedidos/generar.html')
-    async def show(self, request):
-        return {
-            'productos': await self.get_productos(),
-            'ahora': await date().formatted_now()
-        }
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @admin_y_encargado_ventas
+    async def show(self, request, usuario):
+        return {'usuario': usuario,
+                'productos': await self.get_productos(),
+                'ahora': await date().formatted_now()}
 
     @template('pedidos/generar.html')
-    async def show_with(self, request):
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @admin_y_encargado_ventas
+    async def show_with(self, request, usuario):
         data = await request.post()
 
-        return {
-            'cliente': await self.get_cliente(data['id_cliente']) if 'id_cliente' in data else None,
-            'productos': await self.get_productos(),
-            'ahora': await date().formatted_now()
-        }
+        return {'usuario': usuario,
+                'cliente': await self.get_cliente(data['id_cliente']) if 'id_cliente' in data else None,
+                'productos': await self.get_productos(),
+                'ahora': await date().formatted_now()}
 
     @template('pedidos/generar.html')
-    async def register(self, request):
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @admin_y_encargado_ventas
+    async def register(self, request, usuario):
         data = await request.post()
 
         post_data = await self.validate(data)
 
-        estado_pedido = post_data['estado']
-
         if isinstance(post_data, str):
             alert = {'error': post_data}
         else:
+            estado_pedido = post_data['estado']
+
             post_data = await self.create(post_data)
 
             if post_data:
@@ -96,15 +104,17 @@ class GenerarPedido(Controller):
             else:
                 alert = {'error': 'Algo ha sucedido, no se pudo generar el pedido. Por favor, inténtelo más tarde.'}
 
-        return {
-            **alert,
-            'cliente': await self.get_cliente(data['id_cliente']) if 'id_cliente' in data else None,
-            'productos': await self.get_productos(),
-            'ahora': await date().formatted_now()
-        }
+        return {**alert,
+                'usuario': usuario,
+                'cliente': await self.get_cliente(data['id_cliente']) if 'id_cliente' in data else None,
+                'productos': await self.get_productos(),
+                'ahora': await date().formatted_now()}
 
     @template('pedidos/registrar_pago.html')
-    async def after_registration(self, request):
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @admin_y_encargado_ventas
+    async def after_registration(self, request, usuario):
         cod_pedido = request.match_info['cod_pedido']
 
         pedido = await self.app.mvc.models['pedido'].get(cod_pedido)
@@ -121,7 +131,10 @@ class GenerarPedido(Controller):
         alert = {'success': 'Se ha generado el pedido exitosamente con el siguiente código: '
                             '<strong>{cod}</strong>.'.format(cod=cod_pedido)}
 
-        return {**pedido, **alert, 'despues_generar': True, 'ahora_mismo': await date().formatted_now()}
+        return {**pedido, **alert,
+                'usuario': usuario,
+                'despues_generar': True,
+                'ahora_mismo': await date().formatted_now()}
 
     async def validate(self, data: dict) -> Union[dict, str]:
         try:
@@ -207,7 +220,10 @@ class GenerarPedido(Controller):
 
 class RegistrarPago(Controller):
     @template('pedidos/registrar_pago.html')
-    async def show(self, request):
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @admin_y_encargado_ventas
+    async def show(self, request, usuario):
         cod_pedido = request.match_info['cod_pedido']
 
         pedido = {k: v for k, v in (await self.app.mvc.models['pedido'].get(cod_pedido)).items()}
@@ -220,10 +236,15 @@ class RegistrarPago(Controller):
         if (not pedido) or pago:
             raise HTTPNotFound
 
-        return {**pedido, 'ahora_mismo': await date().formatted_now()}
+        return {**pedido,
+                'usuario': usuario,
+                'ahora_mismo': await date().formatted_now()}
 
     @template('pedidos/registrar_pago.html')
-    async def post(self, request):
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @admin_y_encargado_ventas
+    async def post(self, request, usuario):
         data = await request.post()
 
         cod_pedido = data['cod_pedido']
@@ -247,7 +268,9 @@ class RegistrarPago(Controller):
         if not pedido:
             raise HTTPNotFound
 
-        return {**pedido, **alert, 'ahora_mismo': await date().formatted_now()}
+        return {**pedido, **alert,
+                'usuario': usuario,
+                'ahora_mismo': await date().formatted_now()}
 
     async def validate(self, data: dict):
         cod_pedido = data['cod_pedido']
@@ -275,7 +298,10 @@ class RegistrarPago(Controller):
 
 class ActualizarPedido(Controller):
     @template('pedidos/generar.html')
-    async def show(self, request):
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @solo_admin
+    async def show(self, request, usuario):
         cod_pedido = request.match_info['cod_pedido']
         pedido = await self.app.mvc.models['pedido'].get(cod_pedido)
 
@@ -283,10 +309,14 @@ class ActualizarPedido(Controller):
             raise HTTPNotFound
 
         return {**pedido,
+                'usuario': usuario,
                 'productos': await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_productos')()}
 
     @template('pedidos/generar.html')
-    async def post(self, request):
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @solo_admin
+    async def post(self, request, usuario):
         data = await request.post()
 
         detalles = {int(k[9:]): v for k, v in data.items() if re.fullmatch(PRODUCT_KEY_PATTERN, k)}
@@ -320,6 +350,7 @@ class ActualizarPedido(Controller):
 
         return {**pedido,
                 **alert,
+                'usuario': usuario,
                 'productos': await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_productos')()}
 
     async def validate(self, data: dict, current_data: dict, estado: str, estado_entrega: str) -> Union[str, bool]:
@@ -366,15 +397,17 @@ class ActualizarPedido(Controller):
 
 class BuscarPedido(Controller):
     @template('pedidos/resultados.html')
-    async def show_results(self, request):
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @admin_y_encargado_ventas
+    async def show_results(self, request, usuario):
         data = await request.post()
 
         cliente = await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_cliente')(data['id_cliente'])
 
-        return {
-            'cliente': cliente,
-            'pedidos': await self.get_pedidos(cliente['id_cliente'], estado_importa=False)
-        }
+        return {'usuario': usuario,
+                'cliente': cliente,
+                'pedidos': await self.get_pedidos(cliente['id_cliente'], estado_importa=False)}
 
     async def get_pedidos(self, id_cliente: Union[str, int], estado_importa: bool = False) -> list:
         pedido_model = self.app.mvc.models['pedido']

@@ -2,8 +2,8 @@ from enum import Enum
 from aiohttp.web import json_response
 from aiohttp_jinja2 import template
 
-from ..app import Cajamarqueso
 from ..abc import Controller
+from ..decorators import get_usuario, usuario_debe_estar_conectado, admin_y_encargado_ventas
 
 try:
     import ujson as json
@@ -19,7 +19,10 @@ class TipoCliente(Enum):
 
 
 class BuscarCliente(Controller):
-    async def search(self, request):
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @admin_y_encargado_ventas
+    async def search(self, request, usuario):
         # Modelo de cliente
         cliente_model = self.app.mvc.models['cliente']
 

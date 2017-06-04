@@ -19,18 +19,33 @@
                     <nav class="sidebar-nav">
                         <a href="/" class="logo"></a>
                         <ul class="nav">
-                            <li><a href="/pedido/nuevo" class="{% block nuevo_pedido %}{% endblock %}">Nuevo Pedido</a></li>
-                            <li><a href="/pedido/pago" class="{% block registrar_pago %}{% endblock %}">Registrar Pago</a></li>
-                            <li><a href="/pedido/actualizar" class="{% block actualizar_pedido %}{% endblock %}">Actualizar Pedido</a></li>
-                            <li><a href="#">Ventas</a></li>
-                            <li><a href="#">Productos</a></li>
-                            <li><a href="#">Clientes</a></li>
-                            <li><a href="#">Usuarios</a></li>
-                            <li><a href="#">Salir</a></li>
+                            {% if usuario %}
+                                {% if usuario.tipo == 1 or usuario.tipo == 2 %}
+                                <li><a href="/pedido/nuevo" class="{% block nuevo_pedido %}{% endblock %}">Nuevo Pedido</a></li>
+                                <li><a href="/pedido/pago" class="{% block registrar_pago %}{% endblock %}">Registrar Pago</a></li>
+                                {% endif %}
+                                {% if usuario.tipo == 1 %}
+                                <li><a href="/pedido/actualizar" class="{% block actualizar_pedido %}{% endblock %}">Actualizar Pedido</a></li>
+                                <li><a href="/ventas" class="{% block listar_ventas %}{% endblock %}">Ventas</a></li>
+                                {% endif %}
+                                {% if usuario.tipo == 1 or usuario.tipo == 3 %}
+                                <li><a href="/productos" class="{% block mantener_productos %}{% endblock %}">Productos</a></li>
+                                {% endif %}
+                                {% if usuario.tipo == 1 or usuario.tipo == 2 %}
+                                <li><a href="/clientes" class="{% block mantener_clientes %}{% endblock %}">Clientes</a></li>
+                                {% endif %}
+                                {% if usuario.tipo == 1 %}
+                                <li><a href="/usuarios" class="{% block mantener_usuarios %}{% endblock %}">Usuarios</a></li>
+                                {% endif %}
+                                <li><a href="/logout">Salir</a></li>
+                            {% else %}
+                                <li><a href="/login" class="{% block login %}{% endblock %}">Conectarse</a></li>
+                            {% endif %}
                         </ul>
                     </nav>
                 </div>
                 <div class="col-md-9">
+
                     {% block content %}{% endblock %}
                 </div>
             </div>
@@ -39,6 +54,8 @@
         {% include "pedidos/buscar.html" %}
     </div>
     <!-- Scripts -->
-    <script src="/static/js/app.js"></script>
+    {% block js %}
+        <script src="/static/js/app.js"></script>
+    {% endblock %}
 </body>
 </html>

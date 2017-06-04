@@ -11,4 +11,8 @@ psycopg2 = "*"
 SQLAlchemy = "*"
 aiohttp_jinja2 = "*"
 pytz = "*"
-aiohttp_session = "*"
+bcrypt = "*"
+cryptography = "*"
+
+[packages.aiohttp_session]
+extras = [ "secure",]

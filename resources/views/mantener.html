@@ -1,0 +1,57 @@
+{% extends "layouts/app.html" %}
+
+{% block title %}Usuarios{% endblock %}
+
+{% block mantener_usuarios %}active{% endblock %}
+
+{% block content %}
+<div class="row results-container">
+    <h2>{{ results_title }}</h2>
+    <hr>
+    <div class="buttons-wrapper text-right">
+        {% for btn in results_buttons %}
+            <a href="{{ btn.href }}" class="btn btn-{{ btn.class }} {{ btn.selector }}">
+                {{ btn.name }}
+            </a>
+        {% endfor %}
+    </div>
+    <div class="col-md-12 text-center results-header">
+        {% for h in results_header %}
+        <div class="col-sm-2">
+            {{ h }}
+        </div>
+        {% endfor %}
+    </div>
+        {% if not results %}
+            <div class="alert alert-info" role="alert">No hay {{ mantenimiento }}s registrados.</div>
+        {% else %}
+            <div class="row mantenimiento_lista">
+                {% for r in results %}
+                    <div class="col-md-12 result">
+                        {% for k, v in r.items() %}
+                            <div class="col-sm-2 r-col">
+                                {{ v }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            {% if results|length == 1 %}
+                <div class="row text-center" style="padding-top:15px;">
+                    <a href="/{{ mantenimiento }}s/cargar-mas" class="btn btn-primary load_more" data-pagina="1">Cargar más {{ mantenimiento }}s</a>
+                </div>
+            {% endif %}
+        {% endif %}
+</div>
+{% endblock %}
+
+{% include "modals/mantener_buscar.html" %}
+
+{% block js %}
+    {{ super() }}
+    <script>
+        (function($) {
+            $('.results-container').mantener('{{ mantenimiento }}', '{{ results_search.href }}', '#mantener_buscar_input', '#mantener_buscar_submit', '.mantener_buscar_resultados');
+        })(jQuery);
+    </script>
+{% endblock %}

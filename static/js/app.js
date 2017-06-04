@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -73,16 +73,18 @@
 /**
  * Cargar jQuery.
  */
-window.$ = window.jQuery = __webpack_require__(4);
+window.$ = window.jQuery = __webpack_require__(5);
 
 /**
  * Cargar Bootstrap SASS.
  */
-__webpack_require__(3);
+__webpack_require__(4);
 
 /**
  * Cargar módulos JS de Cajamarqueso.
  */
+__webpack_require__(3);
+
 __webpack_require__(2);
 
 /***/ }),
@@ -93,6 +95,319 @@ __webpack_require__(2);
 
 /***/ }),
 /* 2 */
+/***/ (function(module, exports) {
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+(function ($) {
+    'use strict';
+
+    var Mantener = function () {
+        function Mantener(name, wrapper, search_href, search_input, search_submit, search_results, search_results_flag) {
+            _classCallCheck(this, Mantener);
+
+            this.name = name;
+            this.results_wrapper = wrapper;
+            this.search = {
+                href: search_href,
+                input: search_input,
+                submit: search_submit,
+                results: search_results
+            };
+        }
+
+        _createClass(Mantener, [{
+            key: 'initialize',
+            value: function initialize() {
+                this.setResultOnClickEvent();
+                this.results_wrapper.append(this.modal());
+                this.setBtnOnClickEvent();
+                this.setSearchEvents();
+                this.setSelectSearchResultEvent();
+                this.setLoadMoreEvent();
+            }
+        }, {
+            key: 'getSelected',
+            value: function getSelected() {
+                var selected = this.results_wrapper.find('.result.selected').get(0);
+
+                if (typeof selected === 'undefined') {
+                    return null;
+                }
+
+                return $(selected);
+            }
+        }, {
+            key: 'setResultOnClickEvent',
+            value: function setResultOnClickEvent() {
+                var _this = this;
+
+                $(document).on('click', '.result', function (event) {
+                    var _s = _this.getSelected();
+
+                    if (_s === null) {
+                        $(event.currentTarget).addClass('selected');
+                        return;
+                    }
+
+                    _s.removeClass('selected');
+                    $(event.currentTarget).addClass('selected');
+                });
+            }
+        }, {
+            key: 'setBtnOnClickEvent',
+            value: function setBtnOnClickEvent() {
+                var search_btn, register_btn, update_btn, remove_btn;
+
+                search_btn = this.results_wrapper.find('.search_btn').get(0);
+                update_btn = this.results_wrapper.find('.update_btn').get(0);
+                remove_btn = this.results_wrapper.find('.remove_btn').get(0);
+
+                if (typeof search_btn === 'undefined') {
+                    search_btn = null;
+                } else {
+                    search_btn = $(search_btn);
+                }
+
+                if (typeof update_btn === 'undefined') {
+                    update_btn = null;
+                } else {
+                    update_btn = $(update_btn);
+                }
+
+                if (typeof remove_btn === 'undefined') {
+                    remove_btn = null;
+                } else {
+                    remove_btn = $(remove_btn);
+                }
+
+                this.setBtnEvent(search_btn, true);
+                this.setBtnEvent(update_btn);
+                this.setBtnEvent(remove_btn);
+            }
+        }, {
+            key: 'setBtnEvent',
+            value: function setBtnEvent(btn) {
+                var _this2 = this;
+
+                var search_flag = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+                if (btn === null) {
+                    return;
+                }
+
+                btn.on('click', function (event) {
+                    event.preventDefault();
+
+                    if (search_flag === true) {
+                        $('#mantener-buscar').modal('show');
+                        return;
+                    }
+
+                    var _s = _this2.getSelected();
+
+                    if (_s === null) {
+                        $('#mantener_error .contenido_error').html('Debes de seleccionar un ' + _this2.name + ' primero.');
+                        $('#mantener_error').modal('show');
+
+                        setTimeout(function () {
+                            $('#mantener_error').modal('hide');
+                        }, 1500);
+
+                        return;
+                    }
+
+                    var route = btn.attr('href') + '/' + $.trim(_s.find('div:first').html());
+
+                    window.location.href = route;
+                });
+            }
+        }, {
+            key: 'setSearchEvents',
+            value: function setSearchEvents() {
+                var _this3 = this;
+
+                $(this.search.submit).on('click', function (event) {
+                    var _val = $.trim($(_this3.search.input).val());
+                    if (_val === null || _val === '' || _val === ' ') {
+                        _this3.showSearchError('Debes llenar el campo de ' + $(_this3.search.input).attr('name') + '.');
+                        return;
+                    }
+
+                    var _route = _this3.search.href + '/' + $(_this3.search.input).val().replace(' ', '-');
+                    $.ajax(_route, {
+                        type: 'POST',
+                        context: _this3,
+                        dataType: 'json',
+                        beforeSend: function beforeSend() {
+                            $(_this3.search.submit).button('loading');
+                        },
+                        success: function success(response) {
+                            var results = JSON.parse(response);
+
+                            if (results[0] == null) {
+                                _this3.showSearchError('No se encontró ningún ' + _this3.name + '.', true);
+                                return;
+                            }
+
+                            $(_this3.search.results).html('');
+
+                            $.each(results, function (k, v) {
+                                var result = results[k];
+                                _this3.showResult(result);
+                            });
+
+                            _this3.showResultButtons();
+                        },
+                        error: function error() {
+                            _this3.showSearchError('No se encontró ningún ' + _this3.name + '.', true);
+                        },
+                        complete: function complete() {
+                            $(_this3.search.submit).button('reset');
+                        }
+                    });
+                });
+            }
+        }, {
+            key: 'setSelectSearchResultEvent',
+            value: function setSelectSearchResultEvent() {
+                var _this4 = this;
+
+                $(document).on('click', '.mantener_buscar_btns_wrapper .btn', function (event) {
+                    event.preventDefault();
+
+                    var _selected = $(_this4.search.results).find('input[type="radio"]:checked');
+
+                    if (typeof _selected.get(0) === 'undefined') {
+                        _this4.showSearchError('Debe seleccionar uno de los resultados.');
+                        return;
+                    }
+
+                    window.location.href = $(event.currentTarget).attr('href') + '/' + _selected.attr('value');
+                });
+            }
+        }, {
+            key: 'setLoadMoreEvent',
+            value: function setLoadMoreEvent() {
+                var _this5 = this;
+
+                var load_more_btn = $(this.results_wrapper).find('.load_more');
+
+                load_more_btn.on('click', function (event) {
+                    event.preventDefault();
+
+                    var pagina = parseInt(load_more_btn.data('pagina'));
+                    var href = load_more_btn.attr('href');
+                    var route = href + '/' + pagina;
+
+                    $.ajax(route, {
+                        type: 'GET',
+                        context: _this5,
+                        dataType: 'json',
+                        beforeSend: function beforeSend() {
+                            load_more_btn.button('loading');
+                        },
+                        success: function success(response) {
+                            load_more_btn.data('pagina', '' + (pagina + 1));
+
+                            var results = JSON.parse(response);
+                            var results_list = _this5.results_wrapper.find('.mantenimiento_lista');
+
+                            if (typeof results[0] === 'undefined') {
+                                load_more_btn.addClass('disabled');
+                                load_more_btn.html('No se encontraron más resultados.');
+                                return;
+                            }
+                            console.log(results);
+
+                            for (var i = 0; i < results.length; i++) {
+                                var result = results[i];
+                                var _dom = '<div class="col-md-12 result">';
+                                $.each(result, function (k, v) {
+                                    _dom += '<div class="col-sm-2 r-col">';
+                                    _dom += '' + v;
+                                    _dom += '</div>';
+                                });
+                                _dom += '</div>';
+                                results_list.append(_dom);
+                            }
+
+                            load_more_btn.button('reset');
+                        }
+                    });
+                });
+            }
+        }, {
+            key: 'showResultButtons',
+            value: function showResultButtons() {
+                var _btn = $(this.results_wrapper).find('.buttons-wrapper').clone(true).removeClass('text-right');
+                var _dom = '<div class="row"><div class="col-sm-12 mantener_buscar_btns_wrapper text-center"></div></div>';
+
+                _btn.find('.btn:first').remove();
+                _btn.find('.btn:first').remove();
+
+                _btn.find('.btn').off('click');
+
+                $(this.search.results).append(_dom);
+                $('.mantener_buscar_btns_wrapper').html(_btn);
+            }
+        }, {
+            key: 'showResult',
+            value: function showResult(result) {
+                var first = true;
+                var _dom = '<label><input type="radio" name="';
+
+                $.each(result, function (k, v) {
+                    if (first) {
+                        _dom += k;
+                        _dom += '" value="' + v + '"> ';
+                        first = false;
+                        return;
+                    }
+                    _dom += v + ' ';
+                });
+
+                _dom = $.trim(_dom);
+
+                $(this.search.results).append(_dom);
+            }
+        }, {
+            key: 'showSearchError',
+            value: function showSearchError(error) {
+                var flag = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+                var _error = '<div class="col-sm-12" style="padding-top:10px;"><div class="alert alert-danger" role="alert">' + error + '</div></div>';
+
+                if (!flag) {
+                    $('#mantener-buscar').find('.alert').parent().remove();
+                    $(this.search.results).prepend(_error);
+                    return;
+                }
+
+                $(this.search.results).html(_error);
+            }
+        }, {
+            key: 'modal',
+            value: function modal(error) {
+                return '<div class="modal fade" id="mantener_error" tabindex="-1" role="dialog" aria-labelledby="mantener_error">\n                        <div class="modal-dialog modal-sm" role="document">\n                            <div class="modal-content">\n                                <div class="modal-body contenido_error">\n                                </div>\n                            </div>\n                        </div>\n                    </div>';
+            }
+        }]);
+
+        return Mantener;
+    }();
+
+    function Plugin(name, search_href, search_input, search_submit, search_results) {
+        var _mantener = new Mantener(name, this, search_href, search_input, search_submit, search_results);
+        _mantener.initialize();
+    }
+
+    $.fn.mantener = Plugin;
+})(jQuery);
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports) {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -453,7 +768,7 @@ var pedido = new Pedido({
 pedido.initialize();
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports) {
 
 /*!
@@ -2836,7 +3151,7 @@ if (typeof jQuery === 'undefined') {
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -13096,7 +13411,7 @@ return jQuery;
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(0);

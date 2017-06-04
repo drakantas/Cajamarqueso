@@ -126,11 +126,11 @@ $text-color: #636b6f;
     padding-right: 9px;
 }
 
-.client-orders {
+.client-orders, .results-container {
     position: relative;
 }
 
-.client-orders .orders-header {
+.client-orders .orders-header, .results-container .results-header {
     border: 1px solid #DEDEDE;
     border-radius: 4px;
     font-weight: 700;
@@ -139,7 +139,7 @@ $text-color: #636b6f;
     padding-bottom: 12px;
 }
 
-.client-orders .order {
+.client-orders .order, .results-container .result {
     padding-top: 10px;
     padding-bottom: 10px;
     padding-left: 15px;
@@ -153,7 +153,7 @@ $text-color: #636b6f;
     border-radius: 4px;
 }
 
-.client-orders .order.selected {
+.client-orders .order.selected, .results-container .result.selected {
     border-color: #337AB7;
     background-color: rgba(51, 122, 183, 0.15);
     box-shadow: 0 2px 4px rgba(51, 122, 183, 0.40);
@@ -194,4 +194,16 @@ $text-color: #636b6f;
     margin-top: -17px;
     left: 50%;
     margin-left: -57.5px;
+}
+
+.buttons-wrapper {
+    padding-bottom: 15px;
+}
+
+.r-col {
+    word-wrap: break-word;
+}
+
+.mantener_buscar_resultados label {
+    font-weight: 400;
 }
