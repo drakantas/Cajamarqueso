@@ -45,7 +45,19 @@
                     </nav>
                 </div>
                 <div class="col-md-9">
-
+                    {% if usuario %}
+                        <div class="row">
+                            Bienvenido, <strong>{{ usuario.nombres }} {{ usuario.apellidos }}</strong>
+                            {% if usuario.tipo == 1 %}
+                                (Administrador)
+                            {% elif usuario.tipo == 2 %}
+                                (Encargado de ventas)
+                            {% elif usuario.tipo == 3 %}
+                                (Encargado de Producción)
+                            {% endif %}
+                            <hr>
+                        </div>
+                    {% endif %}
                     {% block content %}{% endblock %}
                 </div>
             </div>
