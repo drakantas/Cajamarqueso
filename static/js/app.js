@@ -371,7 +371,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 _dom = $.trim(_dom);
 
-                $(this.search.results).append(_dom);
+                $(this.search.results).append(_dom + '</label><br>');
             }
         }, {
             key: 'showSearchError',

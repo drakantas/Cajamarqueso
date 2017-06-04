@@ -30,7 +30,7 @@ class Usuario(Model):
         return result
 
     async def get_chunk(self, chunk: int, offset: int) -> Union[list, bool]:
-        query = 'SELECT dni, email, fecha_registro, nombres, apellidos, tipo_usuario FROM t_usuario ORDER BY ' \
+        query = 'SELECT dni, email, tipo_usuario, fecha_registro, nombres, apellidos FROM t_usuario ORDER BY ' \
                 'fecha_registro DESC LIMIT $1 OFFSET $2'
 
         values = (chunk, chunk * offset)

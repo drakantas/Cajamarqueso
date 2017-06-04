@@ -1,8 +1,22 @@
 {% extends "layouts/app.html" %}
 
-{% block title %}Usuarios{% endblock %}
+{% block title %}{{ mantenimiento|capitalize }}s{% endblock %}
 
-{% block mantener_usuarios %}active{% endblock %}
+{% block mantener_productos %}
+    {% if mantenimiento == 'producto' %}
+        active
+    {% endif %}
+{% endblock %}
+{% block mantener_clientes %}
+    {% if mantenimiento == 'cliente' %}
+        active
+    {% endif %}
+{% endblock %}
+{% block mantener_usuarios %}
+    {% if mantenimiento == 'usuario' %}
+        active
+    {% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="row results-container">
@@ -25,7 +39,7 @@
         {% if not results %}
             <div class="alert alert-info" role="alert">No hay {{ mantenimiento }}s registrados.</div>
         {% else %}
-            <div class="row mantenimiento_lista">
+            <div class="mantenimiento_lista">
                 {% for r in results %}
                     <div class="col-md-12 result">
                         {% for k, v in r.items() %}
@@ -36,7 +50,7 @@
                     </div>
                 {% endfor %}
             </div>
-            {% if results|length == 1 %}
+            {% if results|length == 10 %}
                 <div class="row text-center" style="padding-top:15px;">
                     <a href="/{{ mantenimiento }}s/cargar-mas" class="btn btn-primary load_more" data-pagina="1">Cargar más {{ mantenimiento }}s</a>
                 </div>

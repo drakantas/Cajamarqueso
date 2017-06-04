@@ -258,7 +258,7 @@
 
             _dom = $.trim(_dom);
 
-            $(this.search.results).append(_dom);
+            $(this.search.results).append(_dom + '</label><br>');
         }
 
         showSearchError(error, flag = false) {

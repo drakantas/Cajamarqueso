@@ -207,3 +207,9 @@ $text-color: #636b6f;
 .mantener_buscar_resultados label {
     font-weight: 400;
 }
+
+.mantenimiento_lista:after {
+    content: '';
+    display: block;
+    clear: both;
+}
