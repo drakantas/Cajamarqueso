@@ -188,8 +188,9 @@ class Pedido(Model):
                 _detalles = await self.get_detalles(cod_pedido)
 
                 for _detalle in _detalles:
-                    await self.db.update(('UPDATE t_producto SET stock = stock + $1 WHERE id_producto = $2',),
-                                         values=((_detalle['cantidad'], _detalle['id_producto']),))
+                    await self.db.update(('UPDATE t_producto SET stock = stock + $1 WHERE id_producto = $2',
+                                          'DELETE FROM t_detalle_pedido WHERE pedido_cod = $1'),
+                                         values=((_detalle['cantidad'], _detalle['id_producto']), (cod_pedido,)))
 
             return update_pedido == update_ingresos
         else:
