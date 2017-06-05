@@ -26,5 +26,5 @@ def setup_routes(router: Router):
     router.add_resource(r'/usuario/modificar/{id_usuario:[1-9][0-9]*}') \
           .add_route('POST', getattr(router.controllers['usuarios.GestionarUsuario'], 'update_post'))
 
-    router.add_resource(r'/usuario/eliminar/{id_usuario:[1-9][0-9]*}') \
+    router.add_resource(r'/usuario/deshabilitar/{id_usuario:[1-9][0-9]*}') \
           .add_route('GET', getattr(router.controllers['usuarios.GestionarUsuario'], 'remove_get'))

@@ -44,17 +44,17 @@
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-4" for="variedad_producto">Variedad de producto</label>
+            <label class="col-sm-4" for="peso_neto_producto">Peso neto</label>
             <div class="col-sm-8">
                 {% if producto is defined %}
-                    <input type="text" id="variedad_producto" class="form-control" name="variedad_producto" placeholder="Variedad de producto" value="{{ producto.variedad_producto }}">
+                    <input type="text" id="peso_neto_producto" class="form-control" name="peso_neto_producto" placeholder="Peso neto" value="{{ producto.peso_neto_producto }}">
                 {% else %}
-                    <input type="text" id="variedad_producto" class="form-control" name="variedad_producto" placeholder="Variedad de producto">
+                    <input type="text" id="peso_neto_producto" class="form-control" name="peso_neto_producto" placeholder="Peso neto">
                 {% endif %}
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-4" for="presentacion_producto">Presentación de producto</label>
+            <label class="col-sm-4" for="presentacion_producto">Presentación</label>
             <div class="col-sm-8">
                 {% if producto is defined %}
                     <input type="text" id="presentacion_producto" class="form-control" name="presentacion_producto" placeholder="Presentación del producto" value="{{ producto.presentacion_producto }}">

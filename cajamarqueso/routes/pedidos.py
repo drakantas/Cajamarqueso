@@ -21,3 +21,6 @@ def setup_routes(router: Router):
           .add_route('GET', getattr(router.controllers['pedidos.ActualizarPedido'], 'show'))
     router.add_resource(r'/pedido/actualizar/{cod_pedido:' + COD_PEDIDO_PATTERN + '}') \
           .add_route('POST', getattr(router.controllers['pedidos.ActualizarPedido'], 'post'))
+
+    router.add_route('GET', '/ventas', 'pedidos.ListarVentas.get')
+    router.add_route('GET', '/ventas/mes-anterior', 'pedidos.ListarVentas.get_prev_month')

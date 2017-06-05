@@ -133,15 +133,15 @@ class GestionarUsuario(Controller):
         }
 
         if _usuario['dni'] == usuario['dni']:
-            _session['update']['error'] = 'No puedes eliminarte a ti mismo.'
+            _session['update']['error'] = 'No puedes deshabilitar tu misma cuenta.'
             raise HTTPFound(_session['update']['redirect'])
 
         remove = await self.remove(_usuario['dni'])
 
         if remove:
-            _session['update']['success'] = 'Se ha eliminado al usuario exitosamente.'
+            _session['update']['success'] = 'Se ha deshabilitado al usuario exitosamente.'
         else:
-            _session['update']['error'] = 'No se pudo eliminar al usuario. Por favor, inténtelo más tarde.'
+            _session['update']['error'] = 'No se pudo deshabilitar al usuario. Por favor, inténtelo más tarde.'
 
         raise HTTPFound(_session['update']['redirect'])
 
@@ -152,6 +152,7 @@ class GestionarUsuario(Controller):
         password = data['password_usuario'].strip()
         nombres = data['nombres_usuario'].strip()
         apellidos = data['apellidos_usuario'].strip()
+        habilitar = True
         fecha_registro = {}
 
         _error_llenado = 'Debes de llenar todos los campos.'
@@ -193,6 +194,17 @@ class GestionarUsuario(Controller):
         if not re.fullmatch(EMAIL_PATTERN, email):
             return 'El correo electrónico debe ser de la forma email@ejemplo.com'
 
+        _hab_error = 'La opción seleccionada para habilitar el usuario no existe.'
+
+        if 'habilitar_usuario' in data:
+            try:
+                habilitar = int(data['habilitar_usuario'])
+                if habilitar not in (0, 1):
+                    return _hab_error
+                habilitar = bool(habilitar)
+            except ValueError:
+                return _hab_error
+
         if not update and not id_usuario:
             _usuario = await self._get_usuario(dni)
             _usuario_por_email = await self._get_usuario(email)
@@ -223,7 +235,8 @@ class GestionarUsuario(Controller):
             'password': password,
             'tipo': tipo,
             'nombres': nombres,
-            'apellidos': apellidos
+            'apellidos': apellidos,
+            'habilitar': habilitar
         }
 
     async def create(self, data: dict) -> bool:
@@ -350,8 +363,8 @@ class ListarUsuarios(Controller):
                 'selector': 'update_btn'
             },
             {
-                'name': 'Eliminar',
-                'href': '/usuario/eliminar',
+                'name': 'Deshabilitar',
+                'href': '/usuario/deshabilitar',
                 'class': 'danger',
                 'selector': 'remove_btn'
             }
@@ -362,7 +375,8 @@ class ListarUsuarios(Controller):
             'input': 'nombres',
             'href': '/usuario/buscar'
         }
-        results_header = ('DNI', 'Correo electrónico', 'Tipo de usuario', 'Fecha de registro', 'Nombres', 'Apellidos')
+        results_header = ('DNI', 'Correo electrónico', 'Tipo de usuario', 'Fecha de registro', 'Nombres completos',
+                          '¿Habilitado?')
 
         return {**alert,
                 'usuario': usuario,
@@ -402,17 +416,22 @@ class IniciarSesion(Controller):
         return HTTPFound('/')
 
     async def validate(self, data) -> Union[str, int]:
-        if data['email'] == '':
-            return 'Debes de llenar el campo de correo electrónico.'
+        if data['dni'] == '':
+            return 'Debes de llenar el campo de dni.'
         elif data['password'] == '':
             return 'Debes de llenar el campo de contraseña.'
 
-        if not 16 <= len(data['email']) <= 128:
-            return 'El campo de correo electrónico debe contener entre 16 y 128 caracteres.'
+        if not 6 <= len(data['dni']) <= 9:
+            return 'El campo de dni debe contener entre 6 y 9 caracteres.'
         elif not 8 <= len(data['password']) <= 32:
             return 'El campo de contraseña debe contener entre 8 y 32 caracteres.'
 
-        user = await self.get_user_by_email(data['email'])
+        try:
+            dni = int(data['dni'])
+        except ValueError:
+            return 'Solo debes de ingresar dígitos en el campo de dni. Por favor, inténtelo otra vez.'
+
+        user = await self.get_user_by_id(dni)
 
         error_message = 'El correo electrónico o contraseña no coinciden, inténtelo otra vez.'
 
@@ -423,6 +442,10 @@ class IniciarSesion(Controller):
 
         if hashpw(_p, user['credencial']) != user['credencial']:
             return error_message
+
+        if not user['habilitado']:
+            return 'Tu cuenta se encuentra actualmente deshabilitada. Contacta al administrador para reactivar tu ' \
+                   'cuenta.'
 
         return user['dni']
 
@@ -441,11 +464,6 @@ class IniciarSesion(Controller):
         }
 
         _session['usuario'] = user_state
-
-    async def get_user_by_email(self, email: str):
-        usuario_model = self.app.mvc.models['usuario']
-
-        return await usuario_model.get(email)
 
     async def get_user_by_id(self, id_: int):
         usuario_model = self.app.mvc.models['usuario']

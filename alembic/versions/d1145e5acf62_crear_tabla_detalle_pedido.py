@@ -23,9 +23,9 @@ def upgrade():
                     sa.Column('cantidad', sa.SmallInteger, nullable=False))
 
     op.create_foreign_key('pedido_cod_fk', 'detalle_pedido', 'pedido', ['pedido_cod'], ['cod_pedido'],
-                          ondelete='CASCADE')
+                          ondelete='CASCADE', onupdate='CASCADE')
     op.create_foreign_key('producto_id_fk', 'detalle_pedido', 'producto', ['producto_id'], ['id_producto'],
-                          ondelete='CASCADE')
+                          ondelete='CASCADE', onupdate='CASCADE')
 
 
 def downgrade():

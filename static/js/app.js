@@ -236,7 +236,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         return;
                     }
 
-                    var _route = _this3.search.href + '/' + $(_this3.search.input).val().replace(' ', '-');
+                    var _route = _this3.search.href + '/' + $(_this3.search.input).val().split(' ').join('-');
                     $.ajax(_route, {
                         type: 'POST',
                         context: _this3,

@@ -9,7 +9,7 @@ from ..abc import Controller
 from ..date import date
 from ..decorators import get_usuario, usuario_debe_estar_conectado, solo_admin, admin_y_encargado_ventas
 
-Controllers = ('GenerarPedido', 'RegistrarPago', 'BuscarPedido', 'ActualizarPedido')
+Controllers = ('GenerarPedido', 'RegistrarPago', 'BuscarPedido', 'ActualizarPedido', 'ListarVentas')
 
 PRODUCT_KEY_PATTERN = r'producto_[1-9][0-9]*'
 COD_PEDIDO_PATTERN = r'PED0*(?:(?<=0{2})[1-9]{1}|(?<=0{1})[1-9]{2}|(?<=0{0})[1-9]{3,})'
@@ -403,6 +403,9 @@ class BuscarPedido(Controller):
     async def show_results(self, request, usuario):
         data = await request.post()
 
+        if 'id_cliente' not in data:
+            raise HTTPNotFound
+
         cliente = await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_cliente')(data['id_cliente'])
 
         return {'usuario': usuario,
@@ -413,3 +416,126 @@ class BuscarPedido(Controller):
         pedido_model = self.app.mvc.models['pedido']
 
         return await pedido_model.get_pedidos(id_cliente, estado_importa=estado_importa)
+
+
+class ListarVentas(Controller):
+    @template('pedidos/ventas.html')
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @solo_admin
+    async def get(self, request, usuario):
+        ahora = await date().now()
+        data = await self.get_data(ahora.month)
+
+        return {**data,
+                'usuario': usuario,
+                'm': (await self.parse_month(ahora.month)),
+                'y': ahora.year}
+
+    @template('pedidos/ventas.html')
+    @get_usuario
+    @usuario_debe_estar_conectado
+    @solo_admin
+    async def get_prev_month(self, request, usuario):
+        ahora = await date().now()
+        if ahora.month != 1:
+            mes = ahora.month - 1
+        else:
+            mes = 1
+
+        data = await self.get_data(mes)
+
+        return {**data,
+                'mes_anterior': True,
+                'usuario': usuario,
+                'm': (await self.parse_month(mes)),
+                'y': ahora.year}
+
+    async def get_data(self, mes: int) -> dict:
+        pedido_model = self.app.mvc.models['pedido']
+        producto_model = self.app.mvc.models['producto']
+
+        pedidos = await pedido_model.get_all_from_month(mes)
+        data = {}
+
+        if pedidos:
+            pedidos_pagados = 0
+            pedidos_pendientes_pago = 0
+            pedidos_entregados = 0
+            pedidos_pendientes_entrega = 0
+            pedidos_cancelados = 0
+            ingresos = Decimal(0)
+            ingresos_dimpuestos = Decimal(0)
+            ingresos_pendientes = Decimal(0)
+
+            for p in pedidos:
+                if p['pedido_cod']:
+                    pedidos_pagados += 1
+                    ingresos += p['importe_pagado']
+                    ingresos_dimpuestos += p['subtotal']
+                if not p['pedido_cod']:
+                    pedidos_pendientes_pago += 1
+                    detalles = await pedido_model.get_detalles(p['cod_pedido'])
+                    for d in detalles:
+                        ingresos_pendientes += Decimal(d['cantidad']) * d['precio']
+                if p['entrega'] == 2:
+                    pedidos_entregados += 1
+                elif p['entrega'] == 1:
+                    pedidos_pendientes_entrega += 1
+                elif p['entrega'] == 3:
+                    pedidos_cancelados += 1
+
+            productos = [{k: v for k, v in p.items()} for p in (await producto_model.get_sales_data(mes))]
+
+            for producto in productos:
+                if not producto['cantidad_vendida']:
+                    producto['cantidad_vendida'] = 0
+                    producto['cantidad_monetaria_vendida'] = 0
+                else:
+                    producto['cantidad_monetaria_vendida'] = producto['cantidad_vendida'] * producto['precio']
+
+            return {
+                'pedidos': pedidos,
+                'pedidos_pagados': pedidos_pagados,
+                'pedidos_pendientes_pago': pedidos_pendientes_pago,
+                'pedidos_entregados': pedidos_entregados,
+                'pedidos_pendientes_entrega': pedidos_pendientes_entrega,
+                'pedidos_cancelados': pedidos_cancelados,
+                'ingresos': ingresos,
+                'ingresos_dimpuestos': ingresos_dimpuestos,
+                'ingresos_pendientes': ingresos_pendientes,
+                'productos': productos
+            }
+
+        return {
+            'pedidos': list()
+        }
+
+    @staticmethod
+    async def parse_month(month: int):
+        if month == 1:
+            return 'Enero'
+        elif month == 2:
+            return 'Febrero'
+        elif month == 3:
+            return 'Marzo'
+        elif month == 4:
+            return 'Abril'
+        elif month == 5:
+            return 'Mayo'
+        elif month == 6:
+            return 'Junio'
+        elif month == 7:
+            return 'Julio'
+        elif month == 8:
+            return 'Agosto'
+        elif month == 9:
+            return 'Septiembre'
+        elif month == 10:
+            return 'Octubre'
+        elif month == 11:
+            return 'Noviembre'
+        elif month == 12:
+            return 'Diciembre'
+        else:
+            return 'WTF'

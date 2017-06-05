@@ -1,5 +1,6 @@
 from typing import Union
 from decimal import Decimal
+from datetime import datetime
 
 from ..abc import Model
 from ..date import date
@@ -245,3 +246,10 @@ class Pedido(Model):
     async def get_last_pedido(self):
         query = 'SELECT * FROM t_pedido ORDER BY pedido.fecha_realizado DESC'
         return await self.db.query(query, first=True)
+
+    async def get_all_from_month(self, mes: int):
+        query = 'SELECT * FROM t_pedido LEFT JOIN t_pago ON pago.pedido_cod = pedido.cod_pedido WHERE ' \
+                'EXTRACT(MONTH FROM pedido.fecha_realizado) = $1'
+        values = (mes,)
+
+        return await self.db.query(query, values=values)

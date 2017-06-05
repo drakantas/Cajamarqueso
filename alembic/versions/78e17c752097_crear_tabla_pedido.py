@@ -27,7 +27,8 @@ def upgrade():
                     sa.Column('igv', sa.Numeric, nullable=False),
                     sa.Column('importe_pagado', sa.Numeric, nullable=False))
 
-    op.create_foreign_key('cliente_id_fk', 'pedido', 'cliente', ['cliente_id'], ['id_cliente'], ondelete='CASCADE')
+    op.create_foreign_key('cliente_id_fk', 'pedido', 'cliente', ['cliente_id'], ['id_cliente'], ondelete='CASCADE',
+                          onupdate='CASCADE')
 
 
 def downgrade():

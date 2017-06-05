@@ -52,19 +52,19 @@ class RegistrarProducto(Controller):
 
     async def validate(self, data) -> Union[str, dict]:
         nombre = data['nombre_producto'].strip()
-        variedad = data['variedad_producto'].strip()
+        peso_neto = data['peso_neto_producto'].strip()
         presentacion = data['presentacion_producto'].strip()
         stock = data['stock_producto'].strip()
         precio = data['precio_producto'].strip()
         imagen = data['imagen_producto']
 
-        if nombre == '' or variedad == '' or presentacion == '' or stock == '' or precio == '' or imagen == b'':
+        if nombre == '' or peso_neto == '' or presentacion == '' or stock == '' or precio == '' or imagen == b'':
             return 'Debes de llenar todos los campos del formulario, y seleccionar una imagen.'
 
         if not 8 <= len(nombre) <= 32:
             return 'El nombre del producto debe de contener entre 8 y 128 caracteres.'
-        elif not 3 <= len(variedad) <= 8:
-            return 'La variedad del producto debe de contener entre 3 y 8 caracteres.'
+        elif not 3 <= len(peso_neto) <= 8:
+            return 'La peso_neto del producto debe de contener entre 3 y 8 caracteres.'
         elif not 5 <= len(presentacion) <= 16:
             return 'La presentación del producto debe de contener entre 5 y 16 caracteres.'
 
@@ -86,12 +86,12 @@ class RegistrarProducto(Controller):
         if imagen.headers['Content-Type'] not in ('image/png', 'image/jpeg'):
             return 'El formato de la imagen no es correcto. Solo se soporta imágenes .png y .jpeg'
 
-        if not (await self.verify(nombre, variedad)):
-            return 'Ya existe un producto con el mismo nombre y variedad.'
+        if not (await self.verify(nombre, peso_neto)):
+            return 'Ya existe un producto con el mismo nombre y peso_neto.'
 
         return {
             'nombre': nombre,
-            'variedad': variedad,
+            'peso_neto': peso_neto,
             'presentacion': presentacion,
             'stock': stock,
             'precio': precio,
@@ -103,10 +103,10 @@ class RegistrarProducto(Controller):
 
         return await producto_model.create(data)
 
-    async def verify(self, nombre: str, variedad: str) -> str:
+    async def verify(self, nombre: str, peso_neto: str) -> str:
         producto_model = self.app.mvc.models['producto']
 
-        return await producto_model.verify(nombre, variedad)
+        return await producto_model.verify(nombre, peso_neto)
 
 
 class ModificarProducto(Controller):
@@ -157,19 +157,19 @@ class ModificarProducto(Controller):
 
     async def validate(self, data, id_producto: int) -> Union[str, dict]:
         nombre = data['nombre_producto'].strip()
-        variedad = data['variedad_producto'].strip()
+        peso_neto = data['peso_neto_producto'].strip()
         presentacion = data['presentacion_producto'].strip()
         stock = data['stock_producto'].strip()
         precio = data['precio_producto'].strip()
         imagen = data['imagen_producto']
 
-        if nombre == '' or variedad == '' or presentacion == '' or stock == '' or precio == '':
+        if nombre == '' or peso_neto == '' or presentacion == '' or stock == '' or precio == '':
             return 'Debes de llenar todos los campos del formulario.'
 
         if not 8 <= len(nombre) <= 32:
             return 'El nombre del producto debe de contener entre 8 y 128 caracteres.'
-        elif not 3 <= len(variedad) <= 8:
-            return 'La variedad del producto debe de contener entre 3 y 8 caracteres.'
+        elif not 3 <= len(peso_neto) <= 8:
+            return 'La peso_neto del producto debe de contener entre 3 y 8 caracteres.'
         elif not 5 <= len(presentacion) <= 16:
             return 'La presentación del producto debe de contener entre 5 y 16 caracteres.'
 
@@ -196,13 +196,13 @@ class ModificarProducto(Controller):
         else:
             _imagen = {}
 
-        verify = await self.verify(nombre, variedad, id_producto=id_producto)
+        verify = await self.verify(nombre, peso_neto, id_producto=id_producto)
 
         if not verify:
-            return 'Ya existe otro producto con el mismo nombre y variedad.'
+            return 'Ya existe otro producto con el mismo nombre y peso_neto.'
 
         return {'nombre': nombre,
-                'variedad': variedad,
+                'peso_neto': peso_neto,
                 'presentacion': presentacion,
                 'stock': stock,
                 'precio': precio,
@@ -218,10 +218,10 @@ class ModificarProducto(Controller):
 
         return await producto_model.get(id_)
 
-    async def verify(self, nombre: str, variedad: str, id_producto: int = None) -> str:
+    async def verify(self, nombre: str, peso_neto: str, id_producto: int = None) -> str:
         producto_model = self.app.mvc.models['producto']
 
-        return await producto_model.verify(nombre, variedad, id_producto=id_producto)
+        return await producto_model.verify(nombre, peso_neto, id_producto=id_producto)
 
 
 class BuscarProductos(Controller):
@@ -233,7 +233,7 @@ class BuscarProductos(Controller):
 
         nombres = '%{}%'.format(request.match_info['nombres'].replace('-', ' '))
 
-        query = 'SELECT id_producto, nombre_producto, variedad_producto FROM t_producto WHERE '\
+        query = 'SELECT id_producto, nombre_producto, peso_neto_producto FROM t_producto WHERE '\
                 'lower(producto.nombre_producto) LIKE $1 LIMIT 10'
 
         values = (nombres,)
@@ -294,7 +294,7 @@ class ListarProductos(Controller):
             'href': '/producto/buscar'
         }
 
-        results_header = ('#', 'Nombre', 'Variedad', 'Presentación', 'Stock', 'Precio')
+        results_header = ('#', 'Nombre', 'Peso neto', 'Presentación', 'Stock', 'Precio')
 
         return {'usuario': usuario,
                 'mantenimiento': 'producto',

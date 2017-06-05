@@ -10,26 +10,29 @@ class Usuario(Model):
         return await self.db.query(query, values=values)
 
     async def create(self, data: dict) -> bool:
-        query = 'INSERT INTO t_usuario (dni, email, credencial, fecha_registro, nombres, apellidos, tipo_usuario) ' \
-                'VALUES ($1, $2, $3, $4, $5, $6, $7)'
+        query = 'INSERT INTO t_usuario (dni, email, credencial, fecha_registro, nombres, apellidos, tipo_usuario, ' \
+                'habilitado) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)'
 
         values = (data['dni'], data['email'], data['password'], (await date().now()), data['nombres'],
-                  data['apellidos'], data['tipo'])
+                  data['apellidos'], data['tipo'], True)
 
         return await self.db.update((query,), values=(values,))
 
     async def update(self, data: dict, id_usuario: int) -> bool:
         query = 'UPDATE t_usuario SET dni = $1, email = $2, credencial = $3, fecha_registro = $4, nombres = $5, ' \
-                'apellidos = $6, tipo_usuario = $7 WHERE dni = $8'
+                'apellidos = $6, tipo_usuario = $7, habilitado = $9 WHERE dni = $8'
+
+        if isinstance(data['password'], bytes):
+            data['password'] = data['password'].decode('utf-8')
 
         values = (data['dni'], data['email'], data['password'], data['fecha_registro'], data['nombres'],
-                  data['apellidos'], data['tipo'], id_usuario)
+                  data['apellidos'], data['tipo'], id_usuario, data['habilitar'])
 
         return await self.db.update((query,), values=(values,))
 
     async def remove(self, id_usuario: int) -> bool:
-        query = 'DELETE FROM t_usuario WHERE dni = $1'
-        values = ((id_usuario,),)
+        query = 'UPDATE t_usuario SET habilitado = $2 WHERE dni = $1'
+        values = ((id_usuario, False),)
 
         return await self.db.update((query,), values=values)
 
@@ -54,7 +57,8 @@ class Usuario(Model):
         return result
 
     async def get_chunk(self, chunk: int, offset: int) -> Union[list, bool]:
-        query = 'SELECT dni, email, tipo_usuario, fecha_registro, nombres, apellidos FROM t_usuario ORDER BY ' \
+        query = 'SELECT dni, email, tipo_usuario, fecha_registro, ' \
+                'CONCAT(nombres, \' \'::char, apellidos) as nombres_completos, habilitado FROM t_usuario ORDER BY ' \
                 'fecha_registro DESC LIMIT $1 OFFSET $2'
 
         values = (chunk, chunk * offset)
@@ -66,6 +70,7 @@ class Usuario(Model):
             for result in results:
                 result['tipo_usuario'] = await self.get_user_type(result['tipo_usuario'])
                 result['fecha_registro'] = await date().parse(result['fecha_registro'])
+                result['habilitado'] = await self.get_user_state(result['habilitado'])
             return results
 
         return False
@@ -80,3 +85,9 @@ class Usuario(Model):
             return 'Encargado de ventas'
         elif id_ == TiposUsuario.ENCARGADO_PRODUCCION.value:
             return 'Encargado de producción'
+
+    async def get_user_state(self, flag: bool) -> str:
+        if flag:
+            return 'Habilitado'
+        else:
+            return 'Deshabilitado'

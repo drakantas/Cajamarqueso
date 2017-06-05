@@ -113,7 +113,7 @@
                             <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto" value="{{ producto.id_producto }}">
                             <label for="selector_item_{{ producto.id_producto }}" class="text-center">
                                 <img src="data:image/png;base64,{{ producto.imagen_producto.decode('utf-8') }}">
-                                <strong class="product_name">{{ producto.nombre_producto }} {{ producto.variedad_producto }}</strong><br>
+                                <strong class="product_name">{{ producto.nombre_producto }} {{ producto.peso_neto_producto }}</strong><br>
                                 Stock: <span class="product_stock">{{ producto.stock }}</span><br>
                                 S/. <span class="product_price">{{ producto.precio }}</span>
                             </label>
@@ -123,7 +123,7 @@
                             <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto" value="{{ producto.id_producto }}">
                             <label for="selector_item_{{ producto.id_producto }}" class="text-center">
                                 <img style="background-image:url(data:image/png;base64,{{ producto.imagen_producto.decode('utf-8') }})">
-                                <strong class="product_name">{{ producto.nombre_producto }} {{ producto.variedad_producto }}</strong><br>
+                                <strong class="product_name">{{ producto.nombre_producto }} {{ producto.peso_neto_producto }}</strong><br>
                                 Stock: <span class="product_stock">{{ producto.stock }}</span><br>
                                 S/. <span class="product_price">{{ producto.precio }}</span>
                             </label>
@@ -144,7 +144,7 @@
                                         </button>
                                     </div>
                                     <div class="col-md-9">
-                                        <label for="producto_{{ detalle.producto_id }}" class="selected_product_name">{{ detalle.nombre_producto }} {{ detalle.variedad_producto }}</label><br>
+                                        <label for="producto_{{ detalle.producto_id }}" class="selected_product_name">{{ detalle.nombre_producto }} {{ detalle.peso_neto_producto }}</label><br>
                                         <input type="text" class="form-control" id="producto_{{ detalle.producto_id }}" name="producto_{{ detalle.producto_id }}" placeholder="Stock: {{ detalle.stock }}" value="{{ detalle.cantidad }}">
                                     </div>
                                 </div>

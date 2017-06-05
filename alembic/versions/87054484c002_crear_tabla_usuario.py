@@ -24,7 +24,8 @@ def upgrade():
                     sa.Column('fecha_registro', sa.DateTime, nullable=False),
                     sa.Column('nombres', sa.String(64), nullable=False),
                     sa.Column('apellidos', sa.String(64), nullable=False),
-                    sa.Column('tipo_usuario', sa.SmallInteger, nullable=False))
+                    sa.Column('tipo_usuario', sa.SmallInteger, nullable=False),
+                    sa.Column('habilitado', sa.Boolean, nullable=False, default=True))
 
 
 def downgrade():

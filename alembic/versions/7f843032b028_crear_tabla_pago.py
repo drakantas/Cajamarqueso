@@ -22,7 +22,8 @@ def upgrade():
                     sa.Column('fecha_realizado', sa.DateTime, nullable=False),
                     sa.Column('cod_comprobante', sa.String(24), nullable=False, unique=True))
 
-    op.create_foreign_key('pedido_cod_fk', 'pago', 'pedido', ['pedido_cod'], ['cod_pedido'], ondelete='CASCADE')
+    op.create_foreign_key('pedido_cod_fk', 'pago', 'pedido', ['pedido_cod'], ['cod_pedido'], ondelete='CASCADE',
+                          onupdate='CASCADE')
 
 
 def downgrade():

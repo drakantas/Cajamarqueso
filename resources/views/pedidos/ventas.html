@@ -1,0 +1,101 @@
+{% extends "layouts/app.html" %}
+
+{% block title %}
+    Ventas de {{ m }}, {{ y }}
+{% endblock %}
+
+{% block listar_ventas %}active{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <h2>
+            Ventas de {{ m }}, {{ y }}
+            <a href="javascript:window.print();" class="btn btn-success">Imprimir</a>
+            {% if mes_anterior is defined %}
+                <a href="/ventas" class="btn btn-default">Ver més actual</a>
+            {% else %}
+                <a href="/ventas/mes-anterior" class="btn btn-default">Ver més anterior</a>
+            {% endif %}
+        </h2>
+        <hr>
+    </div>
+    {% if not pedidos %}
+        <div class="alert alert-info" role="alert">No hay data para mostrar para este periodo, aún.</div>
+    {% else %}
+        <h3>Estadística de pedidos</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Pedidos pagados</th>
+                    <th>Pedidos pendientes de pago</th>
+                    <th>Pedidos entregados</th>
+                    <th>Pedidos pendientes de entrega</th>
+                    <th>Pedidos cancelados</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ pedidos_pagados }}</td>
+                    <td>{{ pedidos_pendientes_pago }}</td>
+                    <td>{{ pedidos_entregados }}</td>
+                    <td>{{ pedidos_pendientes_entrega }}</td>
+                    <td>{{ pedidos_cancelados }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <hr>
+        <h3>Ingresos mensuales</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>S/.</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Ingresos</strong></td>
+                    <td>{{ ingresos }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Ingresos despues de impuestos</strong></td>
+                    <td>{{ ingresos_dimpuestos }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Ingresos pendientes</strong></td>
+                    <td>{{ ingresos_pendientes }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <hr>
+        <h3>Productos vendidos</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>
+                        Nombre de producto
+                    </th>
+                    <th>
+                        Peso neto
+                    </th>
+                    <th>
+                        Cantidad vendida
+                    </th>
+                    <th>
+                        Cantidad monetaria vendida (S/.)
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto['nombre_producto'] }}</td>
+                    <td>{{ producto['peso_neto_producto'] }}</td>
+                    <td>{{ producto['cantidad_vendida'] }}</td>
+                    <td>{{ producto['cantidad_monetaria_vendida'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

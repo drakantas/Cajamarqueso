@@ -127,7 +127,7 @@
                     return;
                 }
 
-                var _route = this.search.href + '/' + $(this.search.input).val().replace(' ', '-')
+                var _route = this.search.href + '/' + $(this.search.input).val().split(' ').join('-')
                 $.ajax(_route, {
                     type: 'POST',
                     context: this,

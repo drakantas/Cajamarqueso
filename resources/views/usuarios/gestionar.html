@@ -104,6 +104,18 @@
                 {% endif %}
             </div>
         </div>
+        {% if m_usuario is defined %}
+            <div class="form-group">
+                <label class="col-sm-4" for="habilitar_usuario">¿Habilitado?</label>
+                <div class="col-sm-8">
+                    <select name="habilitar_usuario" id="habilitar_usuario" class="form-control">
+
+                        <option value="1" {% if m_usuario.habilitado %}selected{% endif %}>Habilitado</option>
+                        <option value="0" {% if not m_usuario.habilitado %}selected{% endif %}>Deshabilitado</option>
+                    </select>
+                </div>
+            </div>
+        {% endif %}
         <div class="col-sm-offset-4 col-sm-8">
             {% if m_usuario is defined %}
                 <button type="submit" class="btn btn-primary">
