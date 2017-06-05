@@ -52,7 +52,7 @@ class Connection:
 
                     return True
                 except:
-                    raise
+                    pass
         return False
 
     def _add_schema(self, query):

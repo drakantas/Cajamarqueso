@@ -132,7 +132,7 @@ class GestionarCliente(Controller):
         try:
             _id = int(_id)
         except ValueError:
-            return 'El DNI o RUC debe de contener solo dígitos'
+            return 'El DNI o RUC debe de contener solo dígitos.'
 
         if not re.fullmatch(EMAIL_PATTERN, email):
             return 'El correo electrónico debe ser de la forma email@ejemplo.com'
@@ -169,11 +169,11 @@ class GestionarCliente(Controller):
             if _id != id_cliente:
                 _cliente = await self._get_cliente(_id)
                 if _cliente:
-                    return 'El DNI o RUC que has ingresado está en uso por otro cliente'
+                    return 'El DNI o RUC que has ingresado está en uso por otro cliente.'
             elif nombre != cliente['nombre_cliente']:
                 _cliente_por_nombre = await self._get_cliente_por_nombre(nombre)
                 if _cliente_por_nombre:
-                    return 'El nombre o razón social ingresado ya está registrado por otro cliente'
+                    return 'El nombre o razón social ingresado ya está registrado por otro cliente.'
 
         return {
             'id': _id,

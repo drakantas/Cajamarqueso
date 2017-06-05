@@ -49,7 +49,7 @@ class GestionarUsuario(Controller):
             if create:
                 alert = {'success': 'Se ha registrado al usuario exitosamente.'}
             else:
-                alert = {'error': 'No se ha podido registrar al usuario. Por favor, inténtelo más tarde'}
+                alert = {'error': 'No se ha podido registrar al usuario. Por favor, inténtelo más tarde.'}
 
         return {**alert,
                 'usuario': usuario}
@@ -180,7 +180,7 @@ class GestionarUsuario(Controller):
         try:
             dni = int(dni)
         except ValueError:
-            return 'El DNI debe de contener solo dígitos'
+            return 'El DNI debe de contener solo dígitos.'
 
         _error_tipo = 'El tipo de usuario seleccionado no existe.'
 
@@ -212,7 +212,7 @@ class GestionarUsuario(Controller):
             if _usuario:
                 return 'Ya existe un usuario registrado con este DNI.'
             elif _usuario_por_email:
-                return 'Ya existe un usuario registrado con este correo electrónico'
+                return 'Ya existe un usuario registrado con este correo electrónico.'
         else:
             _usuario = await self._get_usuario(dni)
             _usuario_por_email = await self._get_usuario(email)

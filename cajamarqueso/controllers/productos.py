@@ -64,7 +64,7 @@ class RegistrarProducto(Controller):
         if not 8 <= len(nombre) <= 32:
             return 'El nombre del producto debe de contener entre 8 y 128 caracteres.'
         elif not 3 <= len(peso_neto) <= 8:
-            return 'La peso_neto del producto debe de contener entre 3 y 8 caracteres.'
+            return 'El peso neto del producto debe de contener entre 3 y 8 caracteres.'
         elif not 5 <= len(presentacion) <= 16:
             return 'La presentación del producto debe de contener entre 5 y 16 caracteres.'
 
@@ -87,7 +87,7 @@ class RegistrarProducto(Controller):
             return 'El formato de la imagen no es correcto. Solo se soporta imágenes .png y .jpeg'
 
         if not (await self.verify(nombre, peso_neto)):
-            return 'Ya existe un producto con el mismo nombre y peso_neto.'
+            return 'Ya existe un producto con el mismo nombre y peso neto.'
 
         return {
             'nombre': nombre,
@@ -169,7 +169,7 @@ class ModificarProducto(Controller):
         if not 8 <= len(nombre) <= 32:
             return 'El nombre del producto debe de contener entre 8 y 128 caracteres.'
         elif not 3 <= len(peso_neto) <= 8:
-            return 'La peso_neto del producto debe de contener entre 3 y 8 caracteres.'
+            return 'El peso neto del producto debe de contener entre 3 y 8 caracteres.'
         elif not 5 <= len(presentacion) <= 16:
             return 'La presentación del producto debe de contener entre 5 y 16 caracteres.'
 
@@ -199,7 +199,7 @@ class ModificarProducto(Controller):
         verify = await self.verify(nombre, peso_neto, id_producto=id_producto)
 
         if not verify:
-            return 'Ya existe otro producto con el mismo nombre y peso_neto.'
+            return 'Ya existe otro producto con el mismo nombre y peso neto.'
 
         return {'nombre': nombre,
                 'peso_neto': peso_neto,
