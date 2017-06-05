@@ -108,7 +108,22 @@
         <div class="row">
             <div class="col-md-7 products-list" id="products-list">
                 {% for producto in productos %}
-                    {% if cod_pedido is defined %}
+                    {% if detalles is defined %}
+                        {% for detalle in detalles %}
+                            {% if detalle.producto_id == producto.id_producto and producto.stock == 0 %}
+                                <div class="col-md-4 product">
+                                    <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto" value="{{ producto.id_producto }}">
+                                    <label for="selector_item_{{ producto.id_producto }}" class="text-center">
+                                        <img src="data:image/png;base64,{{ producto.imagen_producto.decode('utf-8') }}">
+                                        <strong class="product_name">{{ producto.nombre_producto }} {{ producto.peso_neto_producto }}</strong><br>
+                                        Stock: <span class="product_stock">{{ producto.stock }}</span><br>
+                                        S/. <span class="product_price">{{ producto.precio }}</span>
+                                    </label>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    {% if cod_pedido is defined and producto.stock > 0 %}
                         <div class="col-md-4 product">
                             <input type="radio" id="selector_item_{{ producto.id_producto }}" name="selector_producto" value="{{ producto.id_producto }}">
                             <label for="selector_item_{{ producto.id_producto }}" class="text-center">

@@ -307,6 +307,8 @@ class ActualizarPedido(Controller):
 
         if not pedido:
             raise HTTPNotFound
+        elif pedido['entrega'] == EntregaPedido.CANCELADO.value:
+            raise HTTPNotFound
 
         return {**pedido,
                 'usuario': usuario,
@@ -361,17 +363,23 @@ class ActualizarPedido(Controller):
             try:
                 cantidad = int(cantidad)
             except ValueError:
-                return 'La cantidad de productos ingresada debe de ser  un número entero mayor que 0.'
+                return 'La cantidad de productos ingresada debe de ser un número entero mayor que 0.'
 
             if cantidad <= 0:
-                return 'La cantidad de productos ingresada debe de ser  un número entero mayor que 0.'
+                return 'La cantidad de productos ingresada debe de ser un número entero mayor que 0.'
+
+            producto = await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_producto')(producto_id)
 
             if producto_id in current_data.keys():
-                producto = await getattr(self.app.mvc.controllers['pedidos.GenerarPedido'], 'get_producto')(producto_id)
-
                 if cantidad > (current_data[producto_id] + producto['stock']):
-                    return 'La cantidad de productos ingresada no puede ser mayor al stock disponible y los cantidad ' \
-                           'de productos que están registrados en este momento.'
+                    return 'La cantidad de productos ingresada por <strong>{name} {pn}</strong> no puede ser mayor al '\
+                           'stock disponible y los cantidad de productos que están registrados en este ' \
+                           'momento.'.format(name=producto['nombre_producto'], pn=producto['peso_neto_producto'])
+            else:
+                if cantidad > producto['stock']:
+                    return 'La cantidad de productos ingresada por <strong>{name} {pn}</strong> no puede ser mayor al '\
+                           'stock disponible.'.format(name=producto['nombre_producto'],
+                                                      pn=producto['peso_neto_producto'])
 
         estado_pedido = validar_estado(estado)
         entrega_pedido = validar_estado_entrega(estado_entrega, validar_completo=True)

@@ -52,43 +52,45 @@
             </div>
         </div>
         {% for pedido in pedidos %}
-            {% if usuario.tipo != 1 and pedido.estado == 1 %}
-            {% else %}
-            <div class="col-md-12 order" data-pedido-id="{{ pedido.cod_pedido }}">
-                <div class="col-sm-2">
-                    {{ pedido.cod_pedido }}
-                </div>
-                <div class="col-sm-2">
-                    {{ pedido.fecha_realizado }}
-                </div>
-                <div class="col-sm-2">
-                    {% if pedido.estado == 1 %}
-                        <span class="estado_pedido">Pagado</span>
-                    {% elif pedido.estado == 2 %}
-                        <span class="estado_pedido">No pagado</span>
-                    {% endif %}
-                 </div>
-                <div class="col-sm-2">
-                    {% if pedido.entrega == 1 %}
-                        Pendiente
-                    {% elif pedido.entrega == 2 %}
-                        Entregado
-                    {% elif pedido.entrega == 3 %}
-                        Cancelado
-                    {% endif %}
-                </div>
-                <div class="col-sm-2">
-                    S/.
-                    {% if pedido.importe_total %}
-                        {{ pedido.importe_total }}
-                    {% else %}
-                        0.00
-                    {% endif %}
-                </div>
-                <div class="col-sm-2">
-                    {{ pedido.detalles|count }}
-                </div>
-            </div>
+            {% if pedido.entrega != 3 %}
+                {% if usuario.tipo != 1 and pedido.estado == 1 %}
+                {% else %}
+                    <div class="col-md-12 order" data-pedido-id="{{ pedido.cod_pedido }}">
+                        <div class="col-sm-2">
+                            {{ pedido.cod_pedido }}
+                        </div>
+                        <div class="col-sm-2">
+                            {{ pedido.fecha_realizado }}
+                        </div>
+                        <div class="col-sm-2">
+                            {% if pedido.estado == 1 %}
+                                <span class="estado_pedido">Pagado</span>
+                            {% elif pedido.estado == 2 %}
+                                <span class="estado_pedido">No pagado</span>
+                            {% endif %}
+                         </div>
+                        <div class="col-sm-2">
+                            {% if pedido.entrega == 1 %}
+                                Pendiente
+                            {% elif pedido.entrega == 2 %}
+                                Entregado
+                            {% elif pedido.entrega == 3 %}
+                                Cancelado
+                            {% endif %}
+                        </div>
+                        <div class="col-sm-2">
+                            S/.
+                            {% if pedido.importe_total %}
+                                {{ pedido.importe_total }}
+                            {% else %}
+                                0.00
+                            {% endif %}
+                        </div>
+                        <div class="col-sm-2">
+                            {{ pedido.detalles|count }}
+                        </div>
+                    </div>
+                {% endif %}
             {% endif %}
         {% endfor %}
     </div>

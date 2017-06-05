@@ -173,12 +173,16 @@ class Pedido(Model):
 
         update_pedido = await self.db.update((query,), values=(values,))
 
-        if estado_pedido == EstadoPedido.NO_PAGADO.value:
+        if estado_pedido == EstadoPedido.NO_PAGADO.value or entrega_pedido == EntregaPedido.CANCELADO.value:
             queries = ('UPDATE t_pedido SET subtotal = 0.0, igv = 0.0, importe_pagado = 0.0 WHERE cod_pedido = $1',
                        'DELETE FROM t_pago WHERE pedido_cod = $1')
             values = ((cod_pedido,), (cod_pedido,))
 
             update_ingresos = await self.db.update(queries, values=values)
+
+            if entrega_pedido == EntregaPedido.CANCELADO.value and estado_pedido != 2:
+                _q = 'UPDATE t_pedido SET estado = 2 WHERE cod_pedido = $1'
+                await self.db.update((_q,), values=((cod_pedido,),))
 
             return update_pedido == update_ingresos
         else:
