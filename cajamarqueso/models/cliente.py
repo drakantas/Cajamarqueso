@@ -31,8 +31,30 @@ class Cliente(Model):
     async def get(self, id_: int):
         return await self.db.query('SELECT * from t_cliente WHERE id_cliente = $1', values=(id_,), first=True)
 
+    async def get_single_by_name(self, name: str):
+        query = 'SELECT * from t_cliente WHERE lower(nombre_cliente) = $1'
+        values = (name.lower(),)
+
+        return await self.db.query(query, values=values, first=True)
+
     async def get_by_name(self, query: str, values: Union[list, tuple]):
         return await self.db.query(query, values=values)
+
+    async def create(self, data: dict) -> bool:
+        query = ('INSERT INTO t_cliente (id_cliente, nombre_cliente, tipo_cliente, email_cliente, telefono_cliente) '
+                 'VALUES ($1, $2, $3, $4, $5)',)
+        values = ([v for v in data.values()],)
+
+        return await self.db.update(query, values=values)
+
+    async def update(self, data: dict, id_cliente: int) -> bool:
+        query = ('UPDATE t_cliente SET id_cliente = $1, nombre_cliente = $2, tipo_cliente = $3, email_cliente = $4, '
+                 'telefono_cliente = $5 WHERE id_cliente = $6',)
+        values = [v for v in data.values()]
+        values.append(id_cliente)
+        values = (values,)
+
+        return await self.db.update(query, values=values)
 
     async def get_chunk(self, chunk: int, offset: int) -> Union[list, bool]:
         query = 'SELECT id_cliente, nombre_cliente, tipo_cliente, email_cliente, telefono_cliente, (SELECT COUNT(*) '\

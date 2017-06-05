@@ -33,7 +33,6 @@ def upgrade():
         possible_varieties = ('1kg', '2kg', '3kg', '4kg', '5kg', '6kg')
         possible_prices = (27.50, 14.50, 29.70, 38.90, 40.50)
         possible_packages = ('Plástico', 'Cartón', 'Vidrio')
-        possible_units = (1,)
         products = list()
 
         for p in possible_names:
@@ -41,7 +40,6 @@ def upgrade():
                 'nombre_producto': p,
                 'variedad_producto': choice(possible_varieties),
                 'presentacion_producto': choice(possible_packages),
-                'magnitud_producto': choice(possible_units),
                 'stock': randint(50, 400),
                 'precio': choice(possible_prices),
                 'imagen_producto': None
@@ -55,10 +53,9 @@ def upgrade():
 
     table = op.create_table('producto',
                             sa.Column('id_producto', sa.Integer, primary_key=True, autoincrement=True),
-                            sa.Column('nombre_producto', sa.String(128), nullable=False, unique=True),
+                            sa.Column('nombre_producto', sa.String(128), nullable=False),
                             sa.Column('variedad_producto', sa.String(64), nullable=False),
                             sa.Column('presentacion_producto', sa.String(32), nullable=False),
-                            sa.Column('magnitud_producto', sa.SmallInteger, nullable=False),
                             sa.Column('stock', sa.SmallInteger, nullable=False),
                             sa.Column('precio', sa.Numeric, nullable=False),
                             sa.Column('imagen_producto', sa.Binary, nullable=False))

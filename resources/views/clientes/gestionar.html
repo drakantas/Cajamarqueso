@@ -1,0 +1,99 @@
+{% extends "layouts/app.html" %}
+
+{% block title %}
+    {% if cliente is defined %}
+    Actualizar cliente
+    {% else %}
+    Registrar nuevo cliente
+    {% endif %}
+{% endblock %}
+
+{% block mantener_clientes %}active{% endblock %}
+
+{% block content %}
+    <div class="row">
+        {% if cliente is defined %}
+            <h2>Actualizar cliente</h2>
+        {% else %}
+            <h2>Registrar nuevo cliente</h2>
+        {% endif %}
+        <hr>
+    </div>
+    {% if error %}
+        <div class="row">
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        </div>
+    {% endif %}
+    {% if success %}
+        <div class="row">
+            <div class="alert alert-success" role="alert">
+                {{ success }}
+            </div>
+        </div>
+    {% endif %}
+    <form method="POST" class="form-horizontal">
+        <div class="form-group">
+            <label class="col-sm-4" for="id_cliente">DNI/RUC</label>
+            <div class="col-sm-8">
+                {% if cliente is defined %}
+                <input type="text" class="form-control" name="id_cliente" id="id_cliente" placeholder="DNI/RUC" value="{{ cliente.id_cliente }}">
+                {% else %}
+                <input type="text" class="form-control" name="id_cliente" id="id_cliente" placeholder="DNI/RUC">
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4" for="nombre_cliente">Nombres/Razón social</label>
+            <div class="col-sm-8">
+                {% if cliente is defined %}
+                <input type="text" class="form-control" name="nombre_cliente" id="nombre_cliente" placeholder="Nombres/Razón social" value="{{ cliente.nombre_cliente }}">
+                {% else %}
+                <input type="text" class="form-control" name="nombre_cliente" id="nombre_cliente" placeholder="Nombres/Razón social">
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4" for="tipo_cliente">Tipo de cliente</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="tipo_cliente" id="tipo_cliente">
+                    {% if cliente is defined %}
+                    <option value="1" {% if cliente.tipo_cliente == 1%}selected{% endif %}>Persona</option>
+                    <option value="2" {% if cliente.tipo_cliente == 2%}selected{% endif %}>Empresa</option>
+                    {% else %}
+                    <option value="1" selected>Persona</option>
+                    <option value="2">Empresa</option>
+                    {% endif %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4" for="email_cliente">Correo electrónico</label>
+            <div class="col-sm-8">
+                {% if cliente is defined %}
+                <input type="text" class="form-control" name="email_cliente" id="email_cliente" placeholder="Correo electrónico" value="{{ cliente.email_cliente }}">
+                {% else %}
+                <input type="text" class="form-control" name="email_cliente" id="email_cliente" placeholder="Correo electrónico">
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4" for="telefono_cliente">Teléfono</label>
+            <div class="col-sm-8">
+                {% if cliente is defined %}
+                <input type="text" class="form-control" name="telefono_cliente" id="telefono_cliente" placeholder="Teléfono" value="{{ cliente.telefono_cliente }}">
+                {% else %}
+                <input type="text" class="form-control" name="telefono_cliente" id="telefono_cliente" placeholder="Teléfono">
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-sm-offset-4 col-sm-8">
+            {% if cliente is defined %}
+            <button type="submit" class="btn btn-primary">Actualizar</button>
+            {% else %}
+            <button type="submit" class="btn btn-primary">Registrar</button>
+            {% endif %}
+        </div>
+    </form>
+{% endblock %}

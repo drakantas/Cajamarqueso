@@ -62,13 +62,18 @@ $text-color: #636b6f;
 
 .products-list .product {
     position: relative;
+    height: 160px;
+    max-height: 160px;
 }
 
 .products-list .product img {
     width: 100%;
-    height: auto;
+    height: 69px;
+    background-size: cover;
+    background-position: 50% 50%;
     border-radius: 3px;
     margin-bottom: 5px;
+
 }
 
 .products-list .product > input[type="radio"] {
@@ -92,6 +97,7 @@ $text-color: #636b6f;
     border-width: 2px;
     border-style: solid;
     border-color: transparent;
+    word-wrap: break-word;
 }
 
 .products-list .product > label.selected {

@@ -207,7 +207,6 @@
                             load_more_btn.html('No se encontraron más resultados.');
                             return;
                         }
-                        console.log(results);
 
                         for (var i = 0; i < results.length; i++) {
                             var result = results[i];
