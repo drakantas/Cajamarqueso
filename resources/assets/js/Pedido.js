@@ -181,9 +181,6 @@ class Pedido
         this.selectors['agregar-producto'].on('click', (event) => {
             var producto = this.selectedProduct();
 
-            console.log('smh');
-            console.log(event);
-
             if (producto === null) {
                 return;
             }
@@ -199,7 +196,7 @@ class Pedido
                 return;
             }
 
-            producto_carrito.next().next().focus();
+            producto_carrito.next().next().find('input[type="text"]').focus();
         });
     }
 
@@ -215,7 +212,10 @@ class Pedido
                     </div>
                     <div class="col-md-9">
                         <label for="producto_${id}" class="selected_product_name">${name}</label><br>
-                        <input type="text" class="form-control" id="producto_${id}" name="producto_${id}" placeholder="Stock: ${stock}">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="producto_${id}" name="producto_${id}" placeholder="Stock: ${stock}">
+                            <div class="input-group-addon sub_total">S/. 0.00</div>
+                        </div>
                     </div>
                 </div>
             </div>`;
@@ -233,7 +233,7 @@ class Pedido
             var selector_producto = this.selectors['lista-productos'].find('.product:contains("'+producto.find('label').html()+'")');
             var precio_producto = parseFloat(selector_producto.find('.product_price').html());
             var cantidad_producto = producto.find('input[type="text"]').val();
-
+            var subtotal_producto = producto.find('.sub_total');
 
             if (cantidad_producto === '') {
                 cantidad_producto = 0;
@@ -245,7 +245,9 @@ class Pedido
                 }
             }
 
-            monto_total += precio_producto * cantidad_producto;
+            var _subtotal_producto = precio_producto * cantidad_producto;
+            subtotal_producto.html('S/. ' + _subtotal_producto.toFixed(2));
+            monto_total += _subtotal_producto;
         }
 
         igv = monto_total * 0.18;

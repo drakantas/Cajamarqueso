@@ -593,9 +593,6 @@ var Pedido = function () {
             this.selectors['agregar-producto'].on('click', function (event) {
                 var producto = _this6.selectedProduct();
 
-                console.log('smh');
-                console.log(event);
-
                 if (producto === null) {
                     return;
                 }
@@ -611,13 +608,13 @@ var Pedido = function () {
                     return;
                 }
 
-                producto_carrito.next().next().focus();
+                producto_carrito.next().next().find('input[type="text"]').focus();
             });
         }
     }, {
         key: 'buildProductDom',
         value: function buildProductDom(id, name, stock) {
-            return '\n            <div class="panel panel-default product">\n                <div class="panel-body">\n                    <div class="col-md-3 text-center">\n                        <button type="button" class="btn btn-danger remove_product">\n                            <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>\n                        </button>\n                    </div>\n                    <div class="col-md-9">\n                        <label for="producto_' + id + '" class="selected_product_name">' + name + '</label><br>\n                        <input type="text" class="form-control" id="producto_' + id + '" name="producto_' + id + '" placeholder="Stock: ' + stock + '">\n                    </div>\n                </div>\n            </div>';
+            return '\n            <div class="panel panel-default product">\n                <div class="panel-body">\n                    <div class="col-md-3 text-center">\n                        <button type="button" class="btn btn-danger remove_product">\n                            <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>\n                        </button>\n                    </div>\n                    <div class="col-md-9">\n                        <label for="producto_' + id + '" class="selected_product_name">' + name + '</label><br>\n                        <div class="input-group">\n                            <input type="text" class="form-control" id="producto_' + id + '" name="producto_' + id + '" placeholder="Stock: ' + stock + '">\n                            <div class="input-group-addon sub_total">S/. 0.00</div>\n                        </div>\n                    </div>\n                </div>\n            </div>';
         }
     }, {
         key: 'updateTotalAmount',
@@ -634,6 +631,8 @@ var Pedido = function () {
                 var selector_producto = this.selectors['lista-productos'].find('.product:contains("' + producto.find('label').html() + '")');
                 var precio_producto = parseFloat(selector_producto.find('.product_price').html());
                 var cantidad_producto = producto.find('input[type="text"]').val();
+                var subtotal_producto = producto.find('.sub_total');
+                console.log(subtotal_producto);
 
                 if (cantidad_producto === '') {
                     cantidad_producto = 0;
@@ -645,7 +644,9 @@ var Pedido = function () {
                     }
                 }
 
-                monto_total += precio_producto * cantidad_producto;
+                var _subtotal_producto = precio_producto * cantidad_producto;
+                subtotal_producto.html('S/. ' + _subtotal_producto.toFixed(2));
+                monto_total += _subtotal_producto;
             }
 
             igv = monto_total * 0.18;

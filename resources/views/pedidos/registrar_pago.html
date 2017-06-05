@@ -113,15 +113,15 @@
             <h4>Productos</h4>
             {% for detalle in detalles %}
             <p>
-                <strong>{{ detalle.nombre_producto }} {{ detalle.variedad_producto }}</strong><br>
-                <em>
+                <strong>{{ detalle.nombre_producto }} {{ detalle.peso_neto_producto }}</strong><br>
+                <em> S/ {{ detalle.precio * detalle.cantidad }} -
                     {{ detalle.cantidad }}
                     {% if detalle.cantidad == 1 %}
                         unidad
                     {% elif detalle.cantidad > 1 %}
                         unidades
                     {% endif %}
-                </em> (S/. {{ detalle.precio }} c/u)
+                </em> (S/. {{ detalle.precio }} c/u)<br>
             </p>
             {% endfor %}
         </div>

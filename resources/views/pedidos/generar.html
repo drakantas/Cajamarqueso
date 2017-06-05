@@ -145,7 +145,10 @@
                                     </div>
                                     <div class="col-md-9">
                                         <label for="producto_{{ detalle.producto_id }}" class="selected_product_name">{{ detalle.nombre_producto }} {{ detalle.peso_neto_producto }}</label><br>
-                                        <input type="text" class="form-control" id="producto_{{ detalle.producto_id }}" name="producto_{{ detalle.producto_id }}" placeholder="Stock: {{ detalle.stock }}" value="{{ detalle.cantidad }}">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="producto_{{ detalle.producto_id }}" name="producto_{{ detalle.producto_id }}" placeholder="Stock: {{ detalle.stock }}" value="{{ detalle.cantidad }}">
+                                            <div class="input-group-addon sub_total">S/. {{ detalle.cantidad * detalle.precio }}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
