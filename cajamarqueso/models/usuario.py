@@ -9,6 +9,30 @@ class Usuario(Model):
     async def get_by_name(self, query: str, values: Union[list, tuple]):
         return await self.db.query(query, values=values)
 
+    async def create(self, data: dict) -> bool:
+        query = 'INSERT INTO t_usuario (dni, email, credencial, fecha_registro, nombres, apellidos, tipo_usuario) ' \
+                'VALUES ($1, $2, $3, $4, $5, $6, $7)'
+
+        values = (data['dni'], data['email'], data['password'], (await date().now()), data['nombres'],
+                  data['apellidos'], data['tipo'])
+
+        return await self.db.update((query,), values=(values,))
+
+    async def update(self, data: dict, id_usuario: int) -> bool:
+        query = 'UPDATE t_usuario SET dni = $1, email = $2, credencial = $3, fecha_registro = $4, nombres = $5, ' \
+                'apellidos = $6, tipo_usuario = $7 WHERE dni = $8'
+
+        values = (data['dni'], data['email'], data['password'], data['fecha_registro'], data['nombres'],
+                  data['apellidos'], data['tipo'], id_usuario)
+
+        return await self.db.update((query,), values=(values,))
+
+    async def remove(self, id_usuario: int) -> bool:
+        query = 'DELETE FROM t_usuario WHERE dni = $1'
+        values = ((id_usuario,),)
+
+        return await self.db.update((query,), values=values)
+
     async def get(self, id_: Union[int, str]) -> Union[bool, dict]:
         if isinstance(id_, str):
             where_clause = 'WHERE email = $1'

@@ -19,6 +19,22 @@
 {% endblock %}
 
 {% block content %}
+
+{% if error %}
+        <div class="row">
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        </div>
+    {% endif %}
+    {% if success %}
+        <div class="row">
+            <div class="alert alert-success" role="alert">
+                {{ success }}
+            </div>
+        </div>
+    {% endif %}
+
 <div class="row results-container">
     <h2>{{ results_title }}</h2>
     <hr>

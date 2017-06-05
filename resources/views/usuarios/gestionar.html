@@ -1,0 +1,119 @@
+{% extends "layouts/app.html" %}
+
+{% block title %}
+    {% if m_usuario is defined %}
+        Actualizar usuario
+    {% else %}
+        Registrar nuevo usuario
+    {% endif %}
+{% endblock %}
+
+{% block mantener_usuarios %}active{% endblock %}
+
+{% block content %}
+    <div class="row">
+        {% if m_usuario is not defined %}
+            <h2>Registrar nuevo usuario</h2>
+        {% else %}
+            <h2>Actualizar usuario</h2>
+        {% endif %}
+        <hr>
+    </div>
+    {% if error %}
+        <div class="row">
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+        </div>
+    {% endif %}
+    {% if success %}
+        <div class="row">
+            <div class="alert alert-success" role="alert">
+                {{ success }}
+            </div>
+        </div>
+    {% endif %}
+    <form class="form-horizontal" method="POST">
+        <div class="form-group">
+            <label class="col-sm-4" for="dni_usuario">DNI</label>
+            <div class="col-sm-8">
+                {% if m_usuario is defined %}
+                    <input type="text" name="dni_usuario" id="dni_usuario" class="form-control" placeholder="DNI" value="{{ m_usuario.dni }}">
+                {% else %}
+                    <input type="text" name="dni_usuario" id="dni_usuario" class="form-control" placeholder="DNI">
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4" for="tipo_usuario">Tipo de usuario</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="tipo_usuario" id="tipo_usuario">
+                    {% if m_usuario is defined %}
+                        <option value="1" {% if m_usuario.tipo_usuario == 1 %}selected{% endif %}>Administrador</option>
+                        <option value="2" {% if m_usuario.tipo_usuario == 2 %}selected{% endif %}>Encargado de ventas</option>
+                        <option value="3" {% if m_usuario.tipo_usuario == 3 %}selected{% endif %}>Encargado de producción</option>
+                    {% else %}
+                        <option value="1">Administrador</option>
+                        <option value="2" selected>Encargado de ventas</option>
+                        <option value="3">Encargado de producción</option>
+                    {% endif %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4" for="email_usuario">Correo electrónico</label>
+            <div class="col-sm-8">
+                {% if m_usuario is defined %}
+                    <input type="text" name="email_usuario" id="email_usuario" class="form-control" placeholder="Correo electrónico" value="{{ m_usuario.email }}">
+                {% else %}
+                    <input type="text" name="email_usuario" id="email_usuario" class="form-control" placeholder="Correo electrónico">
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4" for="password_usuario">Contraseña</label>
+            <div class="col-sm-8">
+                <input type="password" name="password_usuario" id="password_usuario" class="form-control" placeholder="Contraseña">
+            </div>
+        </div>
+        {% if m_usuario is defined %}
+            <div class="form-group">
+                <label class="col-sm-4">Fecha de registro</label>
+                <div class="col-sm-8">
+                    {{ m_usuario.fecha_registro }}
+                </div>
+            </div>
+        {% endif %}
+        <div class="form-group">
+            <label class="col-sm-4" for="nombres_usuario">Nombres completos</label>
+            <div class="col-sm-8">
+                {% if m_usuario is defined %}
+                    <input type="text" name="nombres_usuario" id="nombres_usuario" class="form-control" placeholder="Nombres completos" value="{{ m_usuario.nombres }}">
+                {% else %}
+                    <input type="text" name="nombres_usuario" id="nombres_usuario" class="form-control" placeholder="Nombres completos">
+                {% endif %}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-4" for="apellidos_usuario">Apellidos</label>
+            <div class="col-sm-8">
+                {% if m_usuario is defined %}
+                    <input type="text" name="apellidos_usuario" id="apellidos_usuario" class="form-control" placeholder="Apellidos completos" value="{{ m_usuario.apellidos }}">
+                {% else %}
+                    <input type="text" name="apellidos_usuario" id="apellidos_usuario" class="form-control" placeholder="Apellidos completos">
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-sm-offset-4 col-sm-8">
+            {% if m_usuario is defined %}
+                <button type="submit" class="btn btn-primary">
+                    Actualizar
+                </button>
+            {% else %}
+                <button type="submit" class="btn btn-primary">
+                    Registrar
+                </button>
+            {% endif %}
+        </div>
+    </form>
+{% endblock %}

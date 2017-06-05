@@ -1,7 +1,7 @@
 import re
 from enum import Enum
 from typing import Union
-from aiohttp.web import json_response, HTTPNotFound
+from aiohttp.web import json_response, HTTPNotFound, HTTPFound
 from aiohttp_jinja2 import template
 
 from ..abc import Controller
@@ -58,8 +58,15 @@ class GestionarCliente(Controller):
     @admin_y_encargado_ventas
     async def update_get(self, request, usuario):
         cliente = await self.get_cliente(request.match_info['id_cliente'])
+        _session = await self.get_session(request)
+        alert = {}
 
-        return {'usuario': usuario,
+        if 'update' in _session:
+            alert = {'success': _session['update']['success']}
+            del _session['update']
+
+        return {**alert,
+                'usuario': usuario,
                 'cliente': cliente}
 
     @template('clientes/gestionar.html')
@@ -68,6 +75,7 @@ class GestionarCliente(Controller):
     @admin_y_encargado_ventas
     async def update_post(self, request, usuario):
         cliente = await self.get_cliente(request.match_info['id_cliente'])
+        _session = await self.get_session(request)
 
         data = await request.post()
 
@@ -80,7 +88,13 @@ class GestionarCliente(Controller):
 
             if update:
                 cliente = await self.get_cliente(validated_data['id'])
-                alert = {'success': 'Se ha actualizado al cliente exitosamente.'}
+
+                _session['update'] = {
+                    'redirect': '/cliente/modificar/{}'.format(cliente['id_cliente']),
+                    'success': 'Se ha actualizado al cliente exitosamente.'
+                }
+
+                raise HTTPFound(_session['update']['redirect'])
             else:
                 alert = {'error': 'No se pudo actualizar al cliente. Por favor, inténtelo más tarde.'}
 
@@ -108,12 +122,12 @@ class GestionarCliente(Controller):
         if _id == '' or nombre == '' or tipo == '' or email == '' or telefono == '':
             return 'Debes de llenar todos los campos.'
 
-        if not 5 < len(nombre) < 128:
+        if not 5 <= len(nombre) <= 128:
             return 'El nombre o razón social del cliente debe contener entre 5 y 128 caracteres.'
-        elif not 6 < len(_id) < 11:
-            return 'El DNI o RUC del cliente debe contener entre 6 y 11 caracteres.'
-        elif not 12 < len(email) < 128:
-            return 'El correo electrónico debe contener entre 12 y 128 caracteres.'
+        elif not 6 <= len(_id) <= 9:
+            return 'El DNI o RUC del cliente debe contener entre 6 y 9 caracteres.'
+        elif not 16 <= len(email) <= 128:
+            return 'El correo electrónico debe contener entre 16 y 128 caracteres.'
 
         try:
             _id = int(_id)
@@ -128,7 +142,7 @@ class GestionarCliente(Controller):
         except ValueError:
             return 'El teléfono debe contener solo dígitos.'
 
-        if not 10000000 < telefono < 9999999999:
+        if not 10000000 <= telefono <= 9999999999:
             return 'El número de teléfono debe contener entre 8 y 10 dígitos.'
 
         _error_tipo = 'El tipo de cliente seleccionado no existe.'
@@ -170,7 +184,12 @@ class GestionarCliente(Controller):
         }
 
     async def get_cliente(self, id_cliente: str):
-        cliente = await self._get_cliente(int(id_cliente))
+        cliente = int(id_cliente)
+
+        if not 100000 <= cliente <= 999999999:
+            raise HTTPNotFound
+
+        cliente = await self._get_cliente(cliente)
 
         if not cliente:
             raise HTTPNotFound
