@@ -184,6 +184,13 @@ class Pedido(Model):
                 _q = 'UPDATE t_pedido SET estado = 2 WHERE cod_pedido = $1'
                 await self.db.update((_q,), values=((cod_pedido,),))
 
+            if entrega_pedido == EntregaPedido.CANCELADO.value:
+                _detalles = await self.get_detalles(cod_pedido)
+
+                for _detalle in _detalles:
+                    await self.db.update(('UPDATE t_producto SET stock = stock + $1 WHERE id_producto = $2',),
+                                         values=((_detalle['cantidad'], _detalle['id_producto']),))
+
             return update_pedido == update_ingresos
         else:
             pago = await self.get_payment(cod_pedido)
@@ -193,7 +200,6 @@ class Pedido(Model):
                 update_pago = await self.update({'cod_pedido': cod_pedido, 'ahora': (await date().now())}, pagado=True)
 
             return update_pedido == update_pago
-
 
     async def update_detalles(self, cod_pedido: str, data: dict, new_data: dict):
         # Listas con las consultas que se realizarán
