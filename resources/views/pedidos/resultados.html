@@ -52,6 +52,8 @@
             </div>
         </div>
         {% for pedido in pedidos %}
+            {% if usuario.tipo != 1 and pedido.estado == 1 %}
+            {% else %}
             <div class="col-md-12 order" data-pedido-id="{{ pedido.cod_pedido }}">
                 <div class="col-sm-2">
                     {{ pedido.cod_pedido }}
@@ -61,9 +63,9 @@
                 </div>
                 <div class="col-sm-2">
                     {% if pedido.estado == 1 %}
-                        Pagado
+                        <span class="estado_pedido">Pagado</span>
                     {% elif pedido.estado == 2 %}
-                        No pagado
+                        <span class="estado_pedido">No pagado</span>
                     {% endif %}
                  </div>
                 <div class="col-sm-2">
@@ -87,9 +89,11 @@
                     {{ pedido.detalles|count }}
                 </div>
             </div>
+            {% endif %}
         {% endfor %}
     </div>
     {% endif %}
 {% endblock %}
 
 {% include "modals/error_1.html" %}
+{% include "modals/error_2.html" %}

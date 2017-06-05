@@ -434,7 +434,7 @@ var Pedido = function () {
             var _this2 = this;
 
             this.selectors['buscar-cliente'].find('#search').on('click', function () {
-                _this2.poll(_this2.selectors['buscar-cliente'], '#search', _this2.routes['nuevo-pedido'], ['#search_type', '#search_query']);
+                _this2.poll(_this2.selectors['buscar-cliente'], '#search', _this2.routes['nuevo-pedido'], ['#search_type', '#search_query'], '.search_results_2');
             });
 
             this.addClickEventToProducts();
@@ -453,7 +453,27 @@ var Pedido = function () {
 
             this.updateTotalAmount();
 
-            this.setSelectClientEvent();
+            this.setBtnSearchEvent(['buscar-pedido', 'buscar-cliente'], ['.search_results', '.search_results_2']);
+        }
+    }, {
+        key: 'setBtnSearchEvent',
+        value: function setBtnSearchEvent(bad_variable, bad_variable_2) {
+            var _this3 = this;
+
+            $(document).on('click', bad_variable_2[0] + ' ' + this.vanillaSelectors['btn-seleccionar-cliente'], function (event) {
+                var _selected_1 = _this3.selectors[bad_variable[0]].find(bad_variable_2[0]).find(':checked');
+                if (typeof _selected_1.get(0) === 'undefined') {
+                    event.preventDefault();
+                    _this3.showAlert(_this3.selectors[bad_variable[0]], 'Debes de seleccionar un cliente.', bad_variable_2[0], true);
+                }
+            });
+            $(document).on('click', bad_variable_2[1] + ' ' + this.vanillaSelectors['btn-seleccionar-cliente'], function (event) {
+                var _selected_2 = _this3.selectors[bad_variable[1]].find(bad_variable_2[1]).find(':checked');
+                if (typeof _selected_2.get(0) === 'undefined') {
+                    event.preventDefault();
+                    _this3.showAlert(_this3.selectors[bad_variable[1]], 'Debes de seleccionar un cliente.', bad_variable_2[1], true);
+                }
+            });
         }
     }, {
         key: 'grabData',
@@ -467,14 +487,14 @@ var Pedido = function () {
         }
     }, {
         key: 'poll',
-        value: function poll(selector, trigger, action, input) {
-            var _this3 = this;
+        value: function poll(selector, trigger, action, input, r_wrapper) {
+            var _this4 = this;
 
             var data = this.grabData(selector, input);
             var route = this.routes['buscar-cliente'] + ('/' + data[0] + '/' + data[1]);
 
             if (data[1] == '') {
-                this.showAlert(selector, 'Debes de llenar el campo de búsqueda.');
+                this.showAlert(selector, 'Debes de llenar el campo de búsqueda.', r_wrapper);
                 return;
             }
 
@@ -486,7 +506,7 @@ var Pedido = function () {
                     selector.find(trigger).button('loading');
                 },
                 success: function success(response) {
-                    _this3.showResults(selector, response, action);
+                    _this4.showResults(selector, response, action, r_wrapper);
                 },
                 complete: function complete() {
                     selector.find(trigger).button('reset');
@@ -495,11 +515,11 @@ var Pedido = function () {
         }
     }, {
         key: 'showResults',
-        value: function showResults(selector, results, action) {
+        value: function showResults(selector, results, action, r_wrapper) {
             results = JSON.parse(results);
 
             if (results[0] == null) {
-                this.showAlert(selector, 'No se encontró a ningún cliente.');
+                this.showAlert(selector, 'No se encontró a ningún cliente.', r_wrapper);
                 return;
             }
 
@@ -513,14 +533,24 @@ var Pedido = function () {
 
             results_dom = results_dom + '\n                <div class="text-center">\n                    <button type="submit" class="btn btn-primary" id="busqueda-seleccionar-cliente">\n                        Seleccionar cliente\n                    </button>\n                </div>\n            </form>\n        </div>';
 
-            selector.find('.modal-body .search_results').html(results_dom);
+            selector.find('.modal-body ' + r_wrapper).html(results_dom);
         }
     }, {
         key: 'showAlert',
-        value: function showAlert(selector, alert_message) {
-            var alert = '<hr>\n            <div class="col-sm-12">\n                <div class="alert alert-danger" role="alert">\n                    ' + alert_message + '\n                </div>\n            </div>';
+        value: function showAlert(selector, alert_message, r_wrapper) {
+            var flag = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
-            selector.find('.modal-body .search_results').html(alert);
+            var alert = '\n            <div class="col-sm-12" style="margin-top:10px;">\n                <div class="alert alert-danger" role="alert">\n                    ' + alert_message + '\n                </div>\n            </div>';
+
+            var _a = selector.find('.modal-body ' + r_wrapper).find('.alert');
+
+            if (!flag) {
+                selector.find('.modal-body ' + r_wrapper).html(alert);
+                return;
+            } else {
+                _a.parent().remove();
+                selector.find('.modal-body ' + r_wrapper).prepend(alert);
+            }
         }
     }, {
         key: 'selectedProduct',
@@ -536,12 +566,12 @@ var Pedido = function () {
     }, {
         key: 'addClickEventToProducts',
         value: function addClickEventToProducts() {
-            var _this4 = this;
+            var _this5 = this;
 
             var productos = this.selectors['lista-productos'].find('.product').find('label');
 
             productos.on('click', function (event) {
-                var selected = _this4.selectedProduct();
+                var selected = _this5.selectedProduct();
                 var producto = $(event.currentTarget);
 
                 if (selected === producto) {
@@ -558,10 +588,10 @@ var Pedido = function () {
     }, {
         key: 'addNewProductEvent',
         value: function addNewProductEvent() {
-            var _this5 = this;
+            var _this6 = this;
 
             this.selectors['agregar-producto'].on('click', function (event) {
-                var producto = _this5.selectedProduct();
+                var producto = _this6.selectedProduct();
 
                 console.log('smh');
                 console.log(event);
@@ -574,10 +604,10 @@ var Pedido = function () {
                 var producto_nombre = producto.find('.product_name').html();
                 var producto_stock = producto.find('.product_stock').html();
 
-                var producto_carrito = _this5.selectors['carrito'].find('.product label:contains("' + producto_nombre + '")');
+                var producto_carrito = _this6.selectors['carrito'].find('.product label:contains("' + producto_nombre + '")');
 
                 if (typeof producto_carrito.html() === 'undefined') {
-                    _this5.selectors['carrito'].append(_this5.buildProductDom(producto_id, producto_nombre, producto_stock));
+                    _this6.selectors['carrito'].append(_this6.buildProductDom(producto_id, producto_nombre, producto_stock));
                     return;
                 }
 
@@ -628,49 +658,49 @@ var Pedido = function () {
     }, {
         key: 'addTotalPriceEvent',
         value: function addTotalPriceEvent() {
-            var _this6 = this;
+            var _this7 = this;
 
             $(document).on('change paste', this.vanillaSelectors['carrito'] + ' .product input[type="text"]', function () {
-                _this6.updateTotalAmount();
+                _this7.updateTotalAmount();
             });
         }
     }, {
         key: 'addRemoveProductEvent',
         value: function addRemoveProductEvent() {
-            var _this7 = this;
+            var _this8 = this;
 
             $(document).on('click', this.vanillaSelectors['carrito'] + ' .product .remove_product', function (event) {
 
                 $(event.currentTarget).parent().parent().parent().remove();
 
-                _this7.updateTotalAmount();
+                _this8.updateTotalAmount();
             });
         }
     }, {
         key: 'setSearchOrderEvent',
         value: function setSearchOrderEvent() {
-            var _this8 = this;
+            var _this9 = this;
 
             $('a[href$="/pedido/pago"], a[href$="/pedido/actualizar"]').on('click', function (event) {
                 // No realizar la redirección
                 event.preventDefault();
 
                 // Mostrar modal de búsqueda de pedido
-                _this8.selectors['buscar-pedido'].modal('show');
+                _this9.selectors['buscar-pedido'].modal('show');
             });
 
             this.selectors['buscar-pedido'].find('#o_search').on('click', function () {
-                _this8.poll(_this8.selectors['buscar-pedido'], '#o_search', _this8.routes['pedidos'], ['#o_search_type', '#o_search_query']);
+                _this9.poll(_this9.selectors['buscar-pedido'], '#o_search', _this9.routes['pedidos'], ['#o_search_type', '#o_search_query'], '.search_results');
             });
         }
     }, {
         key: 'setSearchResultsEvent',
         value: function setSearchResultsEvent() {
-            var _this9 = this;
+            var _this10 = this;
 
             this.selectors['resultado-pedido'].on('click', function (event) {
                 var _s = $(event.currentTarget);
-                var _a = _this9.getSelectedResult();
+                var _a = _this10.getSelectedResult();
 
                 if (_a === null) {
                     _s.addClass('selected');
@@ -686,12 +716,19 @@ var Pedido = function () {
     }, {
         key: 'setResultOptionsEvents',
         value: function setResultOptionsEvents() {
-            var _this10 = this;
+            var _this11 = this;
 
             this.selectors['registrar-pago'].on('click', function () {
-                var pedido_id = _this10.validateSelectedOrder();
+                var pedido_id = _this11.validateSelectedOrder();
                 if (pedido_id !== null) {
-                    window.location.replace(_this10.routes['registrar-pago'] + ('/' + pedido_id));
+                    if ($('.order.selected .estado_pedido').html() === 'Pagado') {
+                        $('#error_pedido_ya_pagado').modal('show');
+                        setTimeout(function () {
+                            $('#error_pedido_ya_pagado').modal('hide');
+                        }, 1500);
+                    } else {
+                        window.location.replace(_this11.routes['registrar-pago'] + ('/' + pedido_id));
+                    }
                 } else {
                     $('#error_no_selecciono_pedido').modal('show');
                     setTimeout(function () {
@@ -701,9 +738,9 @@ var Pedido = function () {
             });
 
             this.selectors['actualizar-pedido'].on('click', function () {
-                var pedido_id = _this10.validateSelectedOrder();
+                var pedido_id = _this11.validateSelectedOrder();
                 if (pedido_id !== null) {
-                    window.location.replace(_this10.routes['actualizar-pedido'] + ('/' + pedido_id));
+                    window.location.replace(_this11.routes['actualizar-pedido'] + ('/' + pedido_id));
                 } else {
                     $('#error_no_selecciono_pedido').modal('show');
                     setTimeout(function () {
@@ -733,11 +770,6 @@ var Pedido = function () {
             }
 
             return $(active);
-        }
-    }, {
-        key: 'setSelectClientEvent',
-        value: function setSelectClientEvent() {
-            $(document).on('click', this.vanillaSelectors['btn-seleccionar-cliente'], function () {});
         }
     }]);
 

@@ -15,7 +15,7 @@ class Pedido
     {
         this.selectors['buscar-cliente'].find('#search').on('click', () => {
             this.poll(this.selectors['buscar-cliente'], '#search', this.routes['nuevo-pedido'],
-                     ['#search_type', '#search_query']);
+                     ['#search_type', '#search_query'], '.search_results_2');
         });
 
         this.addClickEventToProducts();
@@ -34,7 +34,25 @@ class Pedido
 
         this.updateTotalAmount();
 
-        this.setSelectClientEvent();
+        this.setBtnSearchEvent(['buscar-pedido', 'buscar-cliente'], ['.search_results', '.search_results_2']);
+    }
+
+    setBtnSearchEvent(bad_variable, bad_variable_2)
+    {
+        $(document).on('click', bad_variable_2[0] + ' ' + this.vanillaSelectors['btn-seleccionar-cliente'], (event) => {
+            var _selected_1 = this.selectors[bad_variable[0]].find(bad_variable_2[0]).find(':checked');
+            if (typeof _selected_1.get(0) === 'undefined') {
+                event.preventDefault();
+                this.showAlert(this.selectors[bad_variable[0]], 'Debes de seleccionar un cliente.', bad_variable_2[0], true);
+            }
+        });
+        $(document).on('click', bad_variable_2[1] + ' ' + this.vanillaSelectors['btn-seleccionar-cliente'], (event) => {
+            var _selected_2 = this.selectors[bad_variable[1]].find(bad_variable_2[1]).find(':checked');
+            if (typeof _selected_2.get(0) === 'undefined') {
+                event.preventDefault();
+                this.showAlert(this.selectors[bad_variable[1]], 'Debes de seleccionar un cliente.', bad_variable_2[1], true);
+            }
+        });
     }
 
     grabData(selector, input)
@@ -45,13 +63,13 @@ class Pedido
         return [search_type.find(':selected').val(), search_query.val().split(' ').join('-')];
     }
 
-    poll(selector, trigger, action, input)
+    poll(selector, trigger, action, input, r_wrapper)
     {
         var data = this.grabData(selector, input);
         var route = this.routes['buscar-cliente'] + `/${data[0]}/${data[1]}`;
 
         if (data[1] == '') {
-            this.showAlert(selector, 'Debes de llenar el campo de búsqueda.');
+            this.showAlert(selector, 'Debes de llenar el campo de búsqueda.', r_wrapper);
             return;
         }
 
@@ -63,7 +81,7 @@ class Pedido
                 selector.find(trigger).button('loading');
             },
             success: (response) => {
-                this.showResults(selector, response, action);
+                this.showResults(selector, response, action, r_wrapper);
             },
             complete: () => {
                 selector.find(trigger).button('reset');
@@ -71,12 +89,12 @@ class Pedido
         });
     }
 
-    showResults(selector, results, action)
+    showResults(selector, results, action, r_wrapper)
     {
         results = JSON.parse(results);
 
         if (results[0] == null) {
-            this.showAlert(selector, 'No se encontró a ningún cliente.');
+            this.showAlert(selector, 'No se encontró a ningún cliente.', r_wrapper);
             return;
         }
 
@@ -103,19 +121,28 @@ class Pedido
             </form>
         </div>`;
 
-        selector.find('.modal-body .search_results').html(results_dom);
+        selector.find('.modal-body ' + r_wrapper).html(results_dom);
     }
 
-    showAlert(selector, alert_message)
+    showAlert(selector, alert_message, r_wrapper, flag = false)
     {
-        var alert = `<hr>
-            <div class="col-sm-12">
+        var alert = `
+            <div class="col-sm-12" style="margin-top:10px;">
                 <div class="alert alert-danger" role="alert">
                     ${alert_message}
                 </div>
             </div>`;
 
-        selector.find('.modal-body .search_results').html(alert);
+        var _a = selector.find('.modal-body ' + r_wrapper).find('.alert');
+
+        if (!flag) {
+            selector.find('.modal-body ' + r_wrapper).html(alert);
+            return;
+        }
+        else {
+            _a.parent().remove();
+            selector.find('.modal-body ' + r_wrapper).prepend(alert);
+        }
     }
 
     selectedProduct()
@@ -258,7 +285,7 @@ class Pedido
 
         this.selectors['buscar-pedido'].find('#o_search').on('click', () => {
             this.poll(this.selectors['buscar-pedido'], '#o_search', this.routes['pedidos'],
-                     ['#o_search_type', '#o_search_query']);
+                     ['#o_search_type', '#o_search_query'], '.search_results');
         });
     }
 
@@ -286,7 +313,15 @@ class Pedido
         this.selectors['registrar-pago'].on('click', () => {
             var pedido_id = this.validateSelectedOrder();
             if (pedido_id !== null) {
-                window.location.replace(this.routes['registrar-pago'] + `/${pedido_id}`);
+                if($('.order.selected .estado_pedido').html() === 'Pagado') {
+                    $('#error_pedido_ya_pagado').modal('show');
+                    setTimeout(() => {
+                        $('#error_pedido_ya_pagado').modal('hide');
+                    }, 1500);
+                }
+                else {
+                    window.location.replace(this.routes['registrar-pago'] + `/${pedido_id}`);
+                }
             } else {
                 $('#error_no_selecciono_pedido').modal('show');
                 setTimeout(() => {
@@ -328,13 +363,6 @@ class Pedido
         }
 
         return $(active);
-    }
-
-    setSelectClientEvent()
-    {
-        $(document).on('click', this.vanillaSelectors['btn-seleccionar-cliente'], () => {
-
-        });
     }
 }
 
