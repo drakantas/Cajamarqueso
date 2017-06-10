@@ -124,8 +124,8 @@ class GestionarCliente(Controller):
 
         if not 5 <= len(nombre) <= 128:
             return 'El nombre o razón social del cliente debe contener entre 5 y 128 caracteres.'
-        elif not 6 <= len(_id) <= 9:
-            return 'El DNI o RUC del cliente debe contener entre 6 y 9 caracteres.'
+        elif not len(_id) == 8 or not len(_id) == 11:
+            return 'El DNI o RUC del cliente debe contener 8 u 11 caracteres.'
         elif not 16 <= len(email) <= 128:
             return 'El correo electrónico debe contener entre 16 y 128 caracteres.'
 
@@ -184,9 +184,12 @@ class GestionarCliente(Controller):
         }
 
     async def get_cliente(self, id_cliente: str):
+        if len(id_cliente) != 11 or len(id_cliente) != 8:
+            raise HTTPNotFound
+
         cliente = int(id_cliente)
 
-        if not 100000 <= cliente <= 999999999:
+        if not 10000000 <= cliente <= 99999999999:
             raise HTTPNotFound
 
         cliente = await self._get_cliente(cliente)

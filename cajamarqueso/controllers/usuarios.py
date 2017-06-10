@@ -164,8 +164,8 @@ class GestionarUsuario(Controller):
             if dni == '' or tipo == '' or email == '' or nombres == '' or apellidos == '':
                 return _error_llenado
 
-        if not 6 <= len(dni) <= 9:
-            return 'El DNI del usuario debe contener entre 6 y 9 caracteres.'
+        if not len(dni) == 8:
+            return 'El DNI del usuario debe contener 8 caracteres.'
         elif not 16 <= len(email) <= 128:
             return 'El correo electrónico debe contener entre 16 y 128 caracteres.'
         elif not 5 <= len(nombres) <= 64:
@@ -421,8 +421,8 @@ class IniciarSesion(Controller):
         elif data['password'] == '':
             return 'Debes de llenar el campo de contraseña.'
 
-        if not 6 <= len(data['dni']) <= 9:
-            return 'El campo de dni debe contener entre 6 y 9 caracteres.'
+        if not len(data['dni']) == 8:
+            return 'El campo de dni debe contener 8 caracteres.'
         elif not 8 <= len(data['password']) <= 32:
             return 'El campo de contraseña debe contener entre 8 y 32 caracteres.'
 
@@ -433,7 +433,7 @@ class IniciarSesion(Controller):
 
         user = await self.get_user_by_id(dni)
 
-        error_message = 'El correo electrónico o contraseña no coinciden, inténtelo otra vez.'
+        error_message = 'El dni y contraseña no coinciden, inténtelo otra vez.'
 
         if not user:
             return error_message
