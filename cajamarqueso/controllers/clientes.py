@@ -124,7 +124,7 @@ class GestionarCliente(Controller):
 
         if not 5 <= len(nombre) <= 128:
             return 'El nombre o razón social del cliente debe contener entre 5 y 128 caracteres.'
-        elif not len(_id) == 8 or not len(_id) == 11:
+        elif not (len(_id) == 8 or len(_id) == 11):
             return 'El DNI o RUC del cliente debe contener 8 u 11 caracteres.'
         elif not 16 <= len(email) <= 128:
             return 'El correo electrónico debe contener entre 16 y 128 caracteres.'
